@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Clarity Video — a distraction-free YouTube viewer. Paste a link or search, watch in peace. No ads, no feeds, no noise.">
+<meta name="description" content="Clarity Video — a distraction-free YouTube viewer. Paste a link, watch in peace. No ads, no feeds, no noise. Made by TTM.">
 <title>Clarity Video — Distraction-Free YouTube Viewer</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%236c8cff'/><polygon points='40,32 72,50 40,68' fill='white'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,6 @@
    1. DESIGN TOKENS & THEMES
    ============================================================ */
 :root {
-  /* Accent (user-customizable) */
   --accent-h: 226;
   --accent-s: 100%;
   --accent-l: 71%;
@@ -25,18 +24,15 @@
   --accent-glow: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.35);
   --on-accent: #0b0d14;
 
-  /* Geometry (user-customizable) */
   --radius: 16px;
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-lg: calc(var(--radius) * 1.4);
-  --density: 1;          /* UI density multiplier */
-  --glass-alpha: 0.62;   /* transparency level    */
-  --motion: 1;           /* motion multiplier     */
+  --density: 1;
+  --glass-alpha: 0.62;
+  --motion: 1;
 
-  /* Spacing — 8px grid */
   --s1: 8px; --s2: 16px; --s3: 24px; --s4: 32px; --s5: 40px; --s6: 48px; --s8: 64px; --s12: 96px;
 
-  /* Motion */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
   --t-fast: calc(160ms * var(--motion));
@@ -49,7 +45,6 @@
   --shadow-accent: 0 8px 32px var(--accent-glow);
 }
 
-/* ---- Theme palettes ---- */
 [data-theme="midnight"] {
   --bg: #0b0d14; --bg-2: #10131d; --surface: #151927; --surface-2: #1c2133;
   --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.14);
@@ -117,15 +112,6 @@
   --orb-a: hsla(var(--accent-h), 90%, 55%, 0.10); --orb-b: hsla(280, 85%, 55%, 0.07); --orb-c: hsla(190, 90%, 50%, 0.06);
   color-scheme: dark;
 }
-/* YouTube-style theme — applied only via the "YouTube style" setting */
-[data-theme="youtube"] {
-  --bg: #0f0f0f; --bg-2: #161616; --surface: #212121; --surface-2: #2b2b2b;
-  --border: rgba(255,255,255,0.09); --border-strong: rgba(255,255,255,0.17);
-  --text: #f1f1f1; --text-2: #aaaaaa; --text-3: #717171;
-  --glass: rgba(15,15,15, var(--glass-alpha));
-  --orb-a: hsla(0, 85%, 50%, 0.09); --orb-b: hsla(0, 70%, 40%, 0.06); --orb-c: hsla(20, 80%, 50%, 0.05);
-  color-scheme: dark;
-}
 
 /* ============================================================
    2. BASE & RESET
@@ -155,9 +141,7 @@ button { cursor: pointer; background: none; border: none; }
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 4px;
-  animation: focusRing calc(400ms * var(--motion)) var(--ease);
 }
-@keyframes focusRing { from { outline-offset: 8px; outline-color: transparent; } to { outline-offset: 3px; } }
 
 html.no-motion *, html.no-motion *::before, html.no-motion *::after {
   animation-duration: 0.001s !important;
@@ -169,7 +153,7 @@ html.no-motion *, html.no-motion *::before, html.no-motion *::after {
 }
 
 /* ============================================================
-   3. AMBIENT BACKGROUND
+   3. AMBIENT BACKGROUND (perf-aware)
    ============================================================ */
 #ambient {
   position: fixed; inset: 0; z-index: -1; overflow: hidden;
@@ -178,7 +162,7 @@ html.no-motion *, html.no-motion *::before, html.no-motion *::after {
 }
 .orb {
   position: absolute; border-radius: 50%;
-  filter: blur(90px);
+  filter: blur(70px);
   will-change: transform;
   transform: translateZ(0);
 }
@@ -210,23 +194,29 @@ html.no-motion *, html.no-motion *::before, html.no-motion *::after {
 html.fx-off #mouse-glow, html.fx-off .orb, html.fx-off .shape { display: none; }
 html.fx-off #ambient { background: var(--bg); }
 
+/* PERFORMANCE MODE — while a video is playing, pause all heavy GPU
+   effects so the embed gets every frame it needs. */
+html.perf-active .orb, html.perf-active .shape { animation-play-state: paused; filter: blur(40px); }
+html.perf-active #mouse-glow { display: none; }
+html.perf-active #navbar { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+
 /* ============================================================
    4. NAVIGATION
    ============================================================ */
 #navbar {
   position: sticky; top: 0; z-index: 100;
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
   background: var(--glass);
   border-bottom: 1px solid var(--border);
   transition: background var(--t-slow) var(--ease), border-color var(--t-slow) var(--ease);
 }
 .nav-inner {
   max-width: 1120px; margin: 0 auto;
-  padding: calc(var(--s2) * var(--density)) var(--s3);
+  padding: calc(var(--s1) * var(--density) + 4px) var(--s3);
   display: flex; align-items: center; gap: var(--s2);
 }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: -0.02em; text-decoration: none; color: var(--text); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -0.02em; text-decoration: none; color: var(--text); white-space: nowrap; }
 .brand-mark {
   width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
   background: linear-gradient(135deg, var(--accent), hsl(calc(var(--accent-h) + 45), var(--accent-s), 60%));
@@ -238,16 +228,18 @@ html.fx-off #ambient { background: var(--bg); }
 .brand-mark svg { width: 13px; height: 13px; fill: var(--on-accent); margin-left: 1px; }
 .brand .beta { font-size: 10px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 2px 7px; border-radius: 99px; letter-spacing: 0.04em; }
 
-.nav-links { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+.nav-links { display: flex; gap: 4px; margin-left: auto; align-items: center; overflow-x: auto; scrollbar-width: none; }
+.nav-links::-webkit-scrollbar { display: none; }
 .nav-link {
   padding: 7px 13px; border-radius: 10px; font-size: 13.5px; font-weight: 500;
-  color: var(--text-2); text-decoration: none;
+  color: var(--text-2); text-decoration: none; white-space: nowrap;
   transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
 }
 .nav-link:hover { color: var(--text); background: var(--surface-2); }
+.nav-link.is-active { color: var(--text); background: var(--surface-2); box-shadow: inset 0 -2px 0 var(--accent); }
 
 .icon-btn {
-  width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
+  width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0;
   color: var(--text-2); border: 1px solid transparent;
   transition: all var(--t-fast) var(--ease);
 }
@@ -255,21 +247,34 @@ html.fx-off #ambient { background: var(--bg); }
 .icon-btn:active { transform: scale(0.94); }
 .icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
+/* Color wheel in the navbar — replaces the old sun/theme button */
+.nav-wheel { position: relative; width: 30px; height: 30px; flex-shrink: 0; margin: 0 3px; }
+.nav-wheel input[type="color"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.nav-wheel .swirl {
+  display: block; width: 30px; height: 30px; border-radius: 50%;
+  background: conic-gradient(#f66,#fc6,#6f9,#6cf,#96f,#f6c,#f66);
+  border: 2px solid var(--border-strong);
+  box-shadow: inset 0 0 0 3px var(--bg);
+  pointer-events: none;
+  transition: transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast) var(--ease);
+}
+.nav-wheel:hover .swirl { transform: scale(1.14) rotate(20deg); box-shadow: inset 0 0 0 3px var(--bg), 0 0 12px var(--accent-glow); }
+
 /* ============================================================
-   5. LAYOUT & COMMAND BAR (straight-to-watch, no hero)
+   5. LAYOUT / VIEWS
    ============================================================ */
 main { max-width: 1120px; margin: 0 auto; padding: 0 var(--s3) var(--s8); position: relative; z-index: 1; }
 
-#command-bar {
-  padding: calc(var(--s4) * var(--density)) 0 var(--s2);
-  animation: fadeUp var(--t-med) var(--ease) both;
-}
-@keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+.view { display: none; }
+.view.active { display: block; animation: fadeUp var(--t-med) var(--ease) both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 
-#url-form {
-  max-width: 780px; margin: 0 auto;
-  display: flex; gap: var(--s1); align-items: stretch;
-}
+.view-title { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; margin: var(--s4) 0 var(--s1); }
+.view-sub { font-size: 13.5px; color: var(--text-3); margin-bottom: var(--s3); }
+
+/* ---- Compact URL bar (Watch view) ---- */
+#watch-top { padding-top: var(--s4); }
+#url-form { max-width: 720px; display: flex; gap: var(--s1); align-items: stretch; }
 .url-field {
   flex: 1; display: flex; align-items: center; gap: 10px;
   background: var(--surface);
@@ -310,36 +315,19 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 var(--s3) var(--s8); positi
 .btn-primary:active { transform: translateY(0) scale(0.97); }
 .btn-primary svg { width: 17px; height: 17px; fill: currentColor; }
 
-.input-hint {
-  margin-top: 10px; font-size: 12px; color: var(--text-3);
-  display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
-}
 kbd {
   font-family: inherit; font-size: 11px; font-weight: 600; color: var(--text-2);
   background: var(--surface); border: 1px solid var(--border-strong); border-bottom-width: 2px;
   border-radius: 6px; padding: 2px 7px;
 }
-.input-error { margin-top: 10px; font-size: 13px; color: #ff7b7b; display: none; text-align: center; animation: fadeUp var(--t-med) var(--ease); }
+.input-error { margin-top: var(--s2); font-size: 13px; color: #ff7b7b; display: none; }
 .input-error.show { display: block; }
-
-#resume-chip {
-  display: none; margin: 12px auto 0; max-width: 460px;
-  align-items: center; gap: 9px;
-  font-size: 12.5px; font-weight: 500; color: var(--text-2);
-  border: 1px solid var(--border); border-radius: 99px;
-  padding: 7px 15px; background: var(--surface);
-  transition: all var(--t-fast) var(--ease);
-}
-#resume-chip.show { display: flex; }
-#resume-chip:hover { color: var(--text); border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow-1); }
-#resume-chip svg { width: 14px; height: 14px; fill: var(--accent); flex-shrink: 0; }
-#resume-chip .rc-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ============================================================
    6. PLAYER SECTION
    ============================================================ */
 #player-section { display: none; margin-top: var(--s3); }
-#player-section.active { display: block; animation: fadeUp var(--t-slow) var(--ease) both; }
+#player-section.active { display: block; animation: fadeUp var(--t-med) var(--ease) both; }
 
 .player-card {
   background: var(--surface);
@@ -380,7 +368,6 @@ kbd {
   display: grid; place-items: center; font-weight: 700; font-size: 16px; color: var(--accent);
   overflow: hidden;
 }
-.meta-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .meta-text { flex: 1; min-width: 180px; }
 #video-title { font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
 #video-channel { font-size: 13px; color: var(--text-2); margin-top: 1px; }
@@ -402,13 +389,11 @@ kbd {
 .chip-btn.is-active svg { fill: var(--accent); stroke: var(--accent); }
 
 /* Focus Mode */
-body.focus-mode #navbar, body.focus-mode #command-bar, body.focus-mode #results-section,
-body.focus-mode #library, body.focus-mode footer, body.focus-mode #fab {
+body.focus-mode #navbar, body.focus-mode #watch-top, body.focus-mode #library, body.focus-mode #fab {
   opacity: 0.06; pointer-events: none; filter: blur(2px);
-  transition: opacity var(--t-slow) var(--ease), filter var(--t-slow) var(--ease);
 }
 body.focus-mode #ambient { opacity: 0.35; }
-#navbar, #command-bar, #results-section, #library, footer, #fab { transition: opacity var(--t-slow) var(--ease), filter var(--t-slow) var(--ease); }
+#navbar, #watch-top, #library, #fab { transition: opacity var(--t-slow) var(--ease), filter var(--t-slow) var(--ease); }
 #focus-exit {
   position: fixed; bottom: var(--s3); left: 50%; transform: translate(-50%, 80px);
   z-index: 200; opacity: 0;
@@ -422,64 +407,9 @@ body.focus-mode #ambient { opacity: 0.35; }
 body.focus-mode #focus-exit { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 
 /* ============================================================
-   7. SEARCH RESULTS
+   7. CARD GRID (Library + Home)
    ============================================================ */
-#results-section { display: none; margin-top: var(--s5); }
-#results-section.active { display: block; animation: fadeUp var(--t-med) var(--ease) both; }
-.results-header { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s3); flex-wrap: wrap; }
-.results-header h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
-.results-header h2 .q { color: var(--accent); }
-#results-status { font-size: 12.5px; color: var(--text-3); }
-#results-close {
-  margin-left: auto; font-size: 12.5px; font-weight: 500; color: var(--text-3);
-  padding: 7px 12px; border-radius: 9px;
-  transition: all var(--t-fast) var(--ease);
-}
-#results-close:hover { color: var(--text); background: var(--surface-2); }
-
-.results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--s2); }
-.result-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  overflow: hidden; cursor: pointer; text-align: left; padding: 0; display: block; width: 100%;
-  transition: transform var(--t-med) var(--ease-spring), box-shadow var(--t-med) var(--ease), border-color var(--t-fast) var(--ease);
-  animation: cardIn var(--t-med) var(--ease) both;
-  will-change: transform;
-}
-.result-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); border-color: var(--border-strong); }
-.result-card:active { transform: translateY(-1px) scale(0.985); }
-.result-thumb { position: relative; aspect-ratio: 16/9; background: var(--surface-2); overflow: hidden; }
-.result-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform var(--t-slow) var(--ease); }
-.result-card:hover .result-thumb img { transform: scale(1.05); }
-.result-thumb .dur {
-  position: absolute; bottom: 7px; right: 7px; font-size: 11px; font-weight: 600;
-  color: #fff; background: rgba(0,0,0,0.72); padding: 2px 7px; border-radius: 6px;
-}
-.match-badge {
-  position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
-  text-transform: uppercase; color: var(--on-accent); background: var(--accent);
-  padding: 3px 9px; border-radius: 6px; box-shadow: var(--shadow-1);
-}
-.match-badge.lib { background: rgba(0,0,0,0.55); color: #fff; backdrop-filter: blur(6px); }
-.result-body { padding: 12px 14px 13px; }
-.result-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.result-chan { font-size: 12px; color: var(--text-2); margin-top: 4px; display: flex; align-items: center; gap: 5px; }
-.result-chan svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
-.result-meta { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
-
-.result-skel { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: var(--surface); }
-.result-skel .sk-thumb { aspect-ratio: 16/9; background: linear-gradient(110deg, var(--surface-2) 30%, var(--border) 50%, var(--surface-2) 70%); background-size: 220% 100%; animation: shimmer 1.6s linear infinite; }
-.result-skel .sk-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-
-.results-empty {
-  grid-column: 1 / -1; text-align: center; padding: var(--s6) var(--s3);
-  color: var(--text-3); font-size: 14px;
-  border: 1.5px dashed var(--border-strong); border-radius: var(--radius);
-}
-
-/* ============================================================
-   8. LIBRARY (History / Favorites)
-   ============================================================ */
-#library { margin-top: var(--s6); animation: fadeUp var(--t-med) var(--ease) 0.15s both; }
+#library { margin-top: var(--s6); }
 .lib-header { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s3); flex-wrap: wrap; }
 .lib-tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; }
 .lib-tab {
@@ -523,7 +453,7 @@ body.focus-mode #focus-exit { opacity: 1; transform: translate(-50%, 0); pointer
 .lib-thumb .play-ico svg { width: 16px; height: 16px; fill: #111; margin-left: 2px; }
 .lib-thumb .kind-badge {
   position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
-  text-transform: uppercase; color: #fff; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+  text-transform: uppercase; color: #fff; background: rgba(0,0,0,0.55);
   padding: 3px 8px; border-radius: 6px;
 }
 .lib-body { padding: 12px 14px 14px; display: flex; gap: 8px; align-items: flex-start; }
@@ -546,13 +476,124 @@ body.focus-mode #focus-exit { opacity: 1; transform: translate(-50%, 0); pointer
 }
 .lib-empty svg { width: 34px; height: 34px; stroke: var(--text-3); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 10px; opacity: 0.7; }
 
+/* ---- Home extras ---- */
+.home-row { display: flex; gap: var(--s2); overflow-x: auto; padding-bottom: var(--s1); margin-bottom: var(--s4); scrollbar-width: thin; }
+.home-row .lib-card { flex: 0 0 230px; }
+.home-section-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 var(--s2); display: flex; align-items: center; gap: 8px; }
+.home-section-title svg { width: 17px; height: 17px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
 /* ============================================================
-   9. SETTINGS PANEL
+   8. SHORTS VIEW
+   ============================================================ */
+#view-shorts .shorts-topbar { display: flex; gap: var(--s1); align-items: center; padding: var(--s2) 0; flex-wrap: wrap; }
+#shorts-add-field { flex: 1; min-width: 220px; display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 12px; padding: 0 12px; }
+#shorts-add-field input { flex: 1; min-width: 0; background: none; border: none; outline: none; padding: 10px 0; font-size: 13.5px; color: var(--text); }
+#shorts-add-field input::placeholder { color: var(--text-3); }
+#shorts-add-btn { flex-shrink: 0; font-size: 12.5px; font-weight: 600; color: var(--on-accent); background: var(--accent); border-radius: 10px; padding: 9px 16px; transition: all var(--t-fast) var(--ease); }
+#shorts-add-btn:hover { filter: brightness(1.08); }
+
+.shorts-stage { position: relative; display: flex; justify-content: center; }
+#shorts-scroller {
+  height: calc(100vh - 170px); min-height: 420px;
+  overflow-y: auto; overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  display: flex; flex-direction: column; align-items: center; gap: var(--s2);
+  scrollbar-width: none; width: 100%;
+}
+#shorts-scroller::-webkit-scrollbar { display: none; }
+.short-slide {
+  scroll-snap-align: center; scroll-snap-stop: always; flex: none;
+  height: calc(100vh - 190px); min-height: 400px;
+  aspect-ratio: 9 / 16; max-width: 94vw;
+  border-radius: var(--radius-lg); overflow: hidden; position: relative;
+  background: #000; border: 1px solid var(--border);
+  box-shadow: var(--shadow-2);
+}
+.short-slide iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.short-slide .short-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.short-slide .short-overlay {
+  position: absolute; inset: auto 0 0 0; padding: 40px 14px 14px; pointer-events: none;
+  background: linear-gradient(transparent, rgba(0,0,0,0.75));
+  color: #fff; font-size: 13px; font-weight: 600; line-height: 1.35;
+}
+.short-slide .short-overlay .ch { font-size: 11.5px; font-weight: 500; opacity: 0.75; margin-top: 2px; }
+.short-slide .short-play {
+  position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,0.2);
+}
+.short-slide .short-play span {
+  width: 58px; height: 58px; border-radius: 50%; background: rgba(255,255,255,0.92);
+  display: grid; place-items: center; transition: transform var(--t-med) var(--ease-spring);
+}
+.short-slide .short-play:hover span { transform: scale(1.1); }
+.short-slide .short-play svg { width: 22px; height: 22px; fill: #111; margin-left: 3px; }
+
+.shorts-nav {
+  position: absolute; right: max(8px, calc(50% - 220px - 66px)); top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 10px; z-index: 5;
+}
+.shorts-nav button {
+  width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--surface); border: 1px solid var(--border-strong); color: var(--text-2);
+  box-shadow: var(--shadow-1);
+  transition: all var(--t-fast) var(--ease);
+}
+.shorts-nav button:hover { color: var(--text); transform: translateY(-2px); border-color: var(--accent); }
+.shorts-nav button:active { transform: scale(0.93); }
+.shorts-nav svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 640px) { .shorts-nav { display: none; } }
+
+/* ============================================================
+   9. INFORMATION VIEW
+   ============================================================ */
+#view-info { text-align: center; }
+#info-hero { padding: calc(var(--s8) * var(--density)) 0 var(--s5); }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px; font-weight: 500; color: var(--text-2);
+  border: 1px solid var(--border); border-radius: 99px;
+  padding: 6px 14px; margin-bottom: var(--s3);
+  background: var(--surface);
+}
+.hero-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.45; transform: scale(0.85); } }
+
+#info-hero h1 {
+  font-size: clamp(32px, 5vw, 52px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.08;
+  margin-bottom: var(--s2);
+}
+#info-hero h1 .grad {
+  background: linear-gradient(100deg, var(--accent), hsl(calc(var(--accent-h) + 60), 90%, 68%));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero-sub { font-size: clamp(15px, 2vw, 17px); color: var(--text-2); max-width: 560px; margin: 0 auto; }
+
+.info-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s2); margin: var(--s4) 0; text-align: left; }
+.info-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: var(--s3);
+  transition: transform var(--t-med) var(--ease-spring), border-color var(--t-fast) var(--ease);
+}
+.info-card:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+.info-card .ic {
+  width: 38px; height: 38px; border-radius: 11px; background: var(--accent-soft);
+  display: grid; place-items: center; margin-bottom: 12px;
+}
+.info-card .ic svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.info-card h3 { font-size: 14.5px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.01em; }
+.info-card p { font-size: 12.5px; color: var(--text-2); line-height: 1.5; }
+
+.info-shortcuts { max-width: 480px; margin: 0 auto var(--s5); text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--s3) var(--s4); }
+.info-shortcuts h2 { font-size: 16px; font-weight: 700; margin-bottom: var(--s2); letter-spacing: -0.02em; }
+
+.made-by { font-size: 13px; color: var(--text-3); padding-bottom: var(--s4); }
+.made-by strong { color: var(--accent); font-weight: 700; }
+
+/* ============================================================
+   10. SETTINGS / MODAL / TOAST / FAB
    ============================================================ */
 #settings-overlay {
   position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.45);
   opacity: 0; pointer-events: none; transition: opacity var(--t-med) var(--ease);
-  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
 }
 #settings-overlay.open { opacity: 1; pointer-events: auto; }
 
@@ -560,7 +601,7 @@ body.focus-mode #focus-exit { opacity: 1; transform: translate(-50%, 0); pointer
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 301;
   width: min(400px, 100vw);
   background: var(--glass);
-  backdrop-filter: blur(26px) saturate(1.5); -webkit-backdrop-filter: blur(26px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5); -webkit-backdrop-filter: blur(22px) saturate(1.5);
   border-left: 1px solid var(--border);
   transform: translateX(102%);
   transition: transform var(--t-med) var(--ease);
@@ -583,7 +624,6 @@ body.focus-mode #focus-exit { opacity: 1; transform: translate(-50%, 0); pointer
 .setting-row .label { font-size: 14px; font-weight: 500; }
 .setting-row .sub { font-size: 12px; color: var(--text-3); margin-top: 1px; }
 
-/* Theme swatches */
 .theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .theme-swatch {
   border: 2px solid var(--border); border-radius: 13px; padding: 8px 6px 7px;
@@ -595,24 +635,23 @@ body.focus-mode #focus-exit { opacity: 1; transform: translate(-50%, 0); pointer
 .theme-swatch .sw { width: 100%; height: 30px; border-radius: 8px; border: 1px solid rgba(128,128,128,0.25); }
 .theme-swatch .nm { font-size: 10.5px; font-weight: 600; color: var(--text-2); }
 
-/* Accent palette — swatches drawn from the theme colors in these settings */
-.palette-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-.palette-dot {
-  position: relative; width: 100%; aspect-ratio: 1; border-radius: 12px;
-  border: 2px solid transparent;
+.accent-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.accent-dot {
+  width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent;
   transition: transform var(--t-fast) var(--ease-spring), border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
 }
-.palette-dot:hover { transform: scale(1.12); }
-.palette-dot.is-active { border-color: var(--text); box-shadow: 0 0 0 3px var(--accent-soft); transform: scale(1.06); }
-.palette-dot.is-active::after {
-  content: ''; position: absolute; inset: 0; margin: auto;
-  width: 9px; height: 5px; border-left: 2px solid rgba(0,0,0,0.75); border-bottom: 2px solid rgba(0,0,0,0.75);
-  transform: rotate(-45deg) translateY(-1px);
+.accent-dot:hover { transform: scale(1.15); }
+.accent-dot.is-active { border-color: var(--text); box-shadow: 0 0 0 3px var(--accent-soft); transform: scale(1.08); }
+.accent-custom { position: relative; width: 32px; height: 32px; }
+.accent-custom input[type="color"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.accent-custom .swirl {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: conic-gradient(#f66,#fc6,#6f9,#6cf,#96f,#f6c,#f66);
+  display: grid; place-items: center; pointer-events: none;
+  border: 2px solid transparent; transition: transform var(--t-fast) var(--ease-spring);
 }
-.palette-dot[data-dark-check="1"].is-active::after { border-color: rgba(255,255,255,0.9); }
-.palette-name { font-size: 11px; color: var(--text-3); margin-top: 8px; min-height: 15px; }
+.accent-custom:hover .swirl { transform: scale(1.15); }
 
-/* Sliders */
 input[type="range"] {
   -webkit-appearance: none; appearance: none; width: 150px; height: 5px; border-radius: 99px;
   background: linear-gradient(to right, var(--accent) var(--fill, 50%), var(--surface-2) var(--fill, 50%));
@@ -630,7 +669,6 @@ input[type="range"]::-moz-range-thumb {
   border: 2.5px solid var(--bg); box-shadow: var(--shadow-1); cursor: grab;
 }
 
-/* Toggle switch */
 .toggle { position: relative; width: 44px; height: 25px; flex-shrink: 0; }
 .toggle input { position: absolute; inset: 0; opacity: 0; cursor: pointer; margin: 0; }
 .toggle .track {
@@ -648,7 +686,6 @@ input[type="range"]::-moz-range-thumb {
 .toggle input:checked ~ .track { background: var(--accent); border-color: var(--accent); }
 .toggle input:checked ~ .knob { transform: translateX(19px); background: var(--on-accent); }
 
-/* Segmented control */
 .segmented { display: flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 2px; }
 .segmented button {
   padding: 6px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 500; color: var(--text-2);
@@ -664,12 +701,9 @@ input[type="range"]::-moz-range-thumb {
 }
 #reset-settings:hover { color: #ff7b7b; border-color: rgba(255,100,100,0.4); background: rgba(255,100,100,0.06); }
 
-/* ============================================================
-   10. SHORTCUTS MODAL, TOAST, FAB, FOOTER
-   ============================================================ */
 #shortcuts-modal {
   position: fixed; inset: 0; z-index: 320; display: grid; place-items: center; padding: var(--s3);
-  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.5);
   opacity: 0; pointer-events: none; transition: opacity var(--t-med) var(--ease);
 }
 #shortcuts-modal.open { opacity: 1; pointer-events: auto; }
@@ -677,6 +711,7 @@ input[type="range"]::-moz-range-thumb {
   width: min(430px, 100%); background: var(--surface); border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg); padding: var(--s4); box-shadow: var(--shadow-2);
   transform: translateY(18px) scale(0.97); transition: transform var(--t-med) var(--ease-spring);
+  max-height: 84vh; overflow-y: auto;
 }
 #shortcuts-modal.open .modal-card { transform: none; }
 .modal-card h2 { font-size: 17px; font-weight: 700; margin-bottom: var(--s3); letter-spacing: -0.02em; }
@@ -706,47 +741,28 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: var(--shadow-accent), var(--shadow-1);
   transition: transform var(--t-med) var(--ease-spring), box-shadow var(--t-med) var(--ease), opacity var(--t-med) var(--ease);
   opacity: 0; transform: translateY(20px) scale(0.8); pointer-events: none;
-  animation: fabFloat 4s ease-in-out infinite;
 }
 #fab.show { opacity: 1; transform: none; pointer-events: auto; }
-#fab:hover { transform: translateY(-3px) scale(1.05); animation-play-state: paused; }
+#fab:hover { transform: translateY(-3px) scale(1.05); }
 #fab:active { transform: scale(0.92); }
 #fab svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; }
-@keyframes fabFloat { 50% { box-shadow: 0 14px 42px var(--accent-glow), var(--shadow-1); } }
-
-footer {
-  border-top: 1px solid var(--border); margin-top: var(--s8);
-  position: relative; z-index: 1;
-  transition: border-color var(--t-slow) var(--ease);
-}
-.footer-inner {
-  max-width: 1120px; margin: 0 auto; padding: var(--s4) var(--s3);
-  display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap;
-  font-size: 12.5px; color: var(--text-3);
-}
-.footer-inner .ver {
-  font-weight: 600; color: var(--text-2); background: var(--surface);
-  border: 1px solid var(--border); border-radius: 99px; padding: 3px 11px;
-}
-.footer-inner .spacer { flex: 1; }
-.footer-inner a { color: var(--text-2); text-decoration: none; transition: color var(--t-fast) var(--ease); }
-.footer-inner a:hover { color: var(--accent); }
 
 /* ============================================================
    11. RESPONSIVE
    ============================================================ */
 @media (max-width: 720px) {
-  .nav-links .nav-link { display: none; }
+  .brand .brand-name { display: none; }
+  .nav-link { padding: 7px 10px; font-size: 13px; }
   #url-form { flex-direction: column; }
-  .btn-primary { padding: 14px; }
+  .btn-primary { padding: 13px; }
   .player-meta { padding: var(--s2); }
-  .lib-grid, .results-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .lib-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   #settings-panel { width: 100vw; }
-  .orb { filter: blur(60px); }
+  .orb { filter: blur(50px); }
 }
 @media (max-width: 420px) {
-  .lib-grid, .results-grid { grid-template-columns: 1fr 1fr; }
-  .lib-body, .result-body { padding: 10px; }
+  .lib-grid { grid-template-columns: 1fr 1fr; }
+  .lib-body { padding: 10px; }
   .player-actions { width: 100%; }
 }
 </style>
@@ -771,15 +787,20 @@ footer {
       <span class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 24 24"><path d="M6 3.8v16.4c0 1 1.1 1.6 2 1.1l13-8.2c.8-.5.8-1.7 0-2.2L8 2.7c-.9-.5-2 .1-2 1.1z"/></svg>
       </span>
-      Clarity Video <span class="beta">by TTM</span>
+      <span class="brand-name">Clarity Video</span> <span class="beta">by TTM</span>
     </a>
     <div class="nav-links">
-      <a class="nav-link" href="#library">Library</a>
+      <a class="nav-link" href="#" data-view="home">Home</a>
+      <a class="nav-link is-active" href="#" data-view="watch">Watch</a>
+      <a class="nav-link" href="#" data-view="shorts">Shorts</a>
+      <a class="nav-link" href="#" data-view="info">Information</a>
+      <!-- Color wheel: pick any accent color -->
+      <div class="nav-wheel" title="Pick accent color">
+        <input type="color" id="nav-accent-picker" value="#6c8cff" aria-label="Pick accent color">
+        <span class="swirl"></span>
+      </div>
       <button class="icon-btn" id="shortcuts-btn" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">
         <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>
-      </button>
-      <button class="icon-btn" id="theme-quick" title="Cycle theme (T)" aria-label="Cycle theme">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg>
       </button>
       <button class="icon-btn" id="settings-btn" title="Settings (S)" aria-label="Open settings">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.77-.32 1.6 1.6 0 0 0-.97 1.47V21a2 2 0 1 1-4 0v-.09a1.6 1.6 0 0 0-1.05-1.47 1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 4.6 15a1.6 1.6 0 0 0-1.47-.97H3a2 2 0 1 1 0-4h.09A1.6 1.6 0 0 0 4.56 9a1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 8.84 4.7 1.6 1.6 0 0 0 9.8 3.24V3a2 2 0 1 1 4 0v.09c0 .64.38 1.21.97 1.47.58.25 1.25.13 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.77c.25.58.83.97 1.47.97H21a2 2 0 1 1 0 4h-.09c-.64 0-1.22.38-1.51.99z"/></svg>
@@ -789,93 +810,173 @@ footer {
 </header>
 
 <main>
-  <!-- ===================== COMMAND BAR (straight to watch) ===================== -->
-  <section id="command-bar" aria-label="Watch or search">
-    <form id="url-form" autocomplete="off">
-      <div class="url-field">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
-        <input id="url-input" type="text" inputmode="search" placeholder="Paste a YouTube link to watch — or type keywords to search…" aria-label="YouTube URL or search query" spellcheck="false">
-        <button type="button" id="paste-btn" title="Paste from clipboard">Paste</button>
-      </div>
-      <button type="submit" class="btn-primary" id="watch-btn">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.6v14.8c0 .9 1 1.5 1.8 1L20.6 13c.8-.5.8-1.6 0-2L8.8 3.6c-.8-.5-1.8.1-1.8 1z"/></svg>
-        Go
-      </button>
-    </form>
-    <p class="input-error" id="url-error" role="alert">That looks like a broken link. Check the URL, or type keywords to search instead.</p>
-    <p class="input-hint">Press <kbd>/</kbd> to focus · <kbd>⌘</kbd><kbd>V</kbd> anywhere to paste &amp; play · <kbd>?</kbd> for shortcuts</p>
-    <button id="resume-chip" title="Resume last video">
-      <svg viewBox="0 0 24 24"><path d="M7 4.6v14.8c0 .9 1 1.5 1.8 1L20.6 13c.8-.5.8-1.6 0-2L8.8 3.6c-.8-.5-1.8.1-1.8 1z"/></svg>
-      <span class="rc-title" id="resume-title"></span>
-    </button>
-  </section>
 
-  <!-- ===================== PLAYER ===================== -->
-  <section id="player-section" aria-label="Video player">
-    <article class="player-card">
-      <div class="player-frame-wrap" id="frame-wrap">
-        <div class="player-skeleton" id="player-skeleton"><div class="spin" aria-label="Loading video"></div></div>
-        <!-- iframe injected here -->
-      </div>
-      <div class="player-meta">
-        <div class="meta-thumb" id="meta-thumb" aria-hidden="true">▶</div>
-        <div class="meta-text">
-          <div id="video-title"><span class="skeleton-line" style="width:220px"></span></div>
-          <div id="video-channel"><span class="skeleton-line" style="width:120px;height:11px"></span></div>
-        </div>
-        <div class="player-actions">
-          <button class="chip-btn" id="fav-btn" title="Add to favorites (F)">
-            <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.7-10-9.3C.4 8.6 2.6 5 6.2 5c2.2 0 3.6 1.1 4.5 2.4h2.6C14.2 6.1 15.6 5 17.8 5c3.6 0 5.8 3.6 4.2 6.7C19.5 16.3 12 21 12 21z" transform="scale(0.92) translate(1,0.5)"/></svg>
-            <span id="fav-label">Favorite</span>
-          </button>
-          <button class="chip-btn" id="copy-btn" title="Copy share link (C)">
-            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copy link
-          </button>
-          <button class="chip-btn" id="pip-btn" title="Picture-in-Picture (P)">
-            <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2.5"/><rect x="12" y="12" width="8" height="6" rx="1.5" fill="currentColor" stroke="none"/></svg>
-            PiP
-          </button>
-          <button class="chip-btn" id="focus-btn" title="Focus mode (D)">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-            Focus
-          </button>
-          <button class="chip-btn" id="fs-btn" title="Fullscreen (⇧F)">
-            <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
-            Fullscreen
-          </button>
-        </div>
-      </div>
-    </article>
-  </section>
+  <!-- ===================== HOME VIEW ===================== -->
+  <section class="view" id="view-home" aria-label="Home">
+    <h1 class="view-title">Home</h1>
+    <p class="view-sub">Jump back in, or explore the built-in starter picks. (True personalized YouTube recommendations require sign-in, which a distraction-free viewer happily skips.)</p>
 
-  <!-- ===================== SEARCH RESULTS ===================== -->
-  <section id="results-section" aria-label="Search results">
-    <div class="results-header">
-      <h2>Results for <span class="q" id="results-query"></span></h2>
-      <span id="results-status"></span>
-      <button id="results-close" title="Close results">✕ Close</button>
+    <div id="home-again-wrap" style="display:none">
+      <h2 class="home-section-title">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        Watch again
+      </h2>
+      <div class="home-row" id="home-again"></div>
     </div>
-    <div class="results-grid" id="results-grid" role="list"></div>
+
+    <h2 class="home-section-title">
+      <svg viewBox="0 0 24 24"><path d="M12 2l2.6 6.6L21 11l-6.4 2.4L12 20l-2.6-6.6L3 11l6.4-2.4z"/></svg>
+      Explore
+    </h2>
+    <div class="lib-grid" id="home-grid"></div>
   </section>
 
-  <!-- ===================== LIBRARY ===================== -->
-  <section id="library" aria-label="Your library">
-    <div class="lib-header">
-      <div class="lib-tabs" role="tablist" aria-label="Library tabs">
-        <button class="lib-tab is-active" id="tab-history" role="tab" aria-selected="true">History <span class="count" id="history-count">0</span></button>
-        <button class="lib-tab" id="tab-favorites" role="tab" aria-selected="false">Favorites <span class="count" id="fav-count">0</span></button>
-      </div>
-      <button id="clear-history" title="Clear all history">Clear history</button>
+  <!-- ===================== WATCH VIEW ===================== -->
+  <section class="view active" id="view-watch" aria-label="Watch">
+    <div id="watch-top">
+      <h1 class="view-title">Watch</h1>
+      <p class="view-sub">Paste any YouTube video, Short, or playlist link. Press <kbd>/</kbd> to focus · <kbd>?</kbd> for shortcuts.</p>
+      <form id="url-form" autocomplete="off">
+        <div class="url-field">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.6 1.6"/><path d="M13.5 10.5a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.6-1.6"/></svg>
+          <input id="url-input" type="text" inputmode="url" placeholder="Paste a YouTube link — video, Short, or playlist…" aria-label="YouTube URL" spellcheck="false">
+          <button type="button" id="paste-btn" title="Paste from clipboard">Paste</button>
+        </div>
+        <button type="submit" class="btn-primary" id="watch-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.6v14.8c0 .9 1 1.5 1.8 1L20.6 13c.8-.5.8-1.6 0-2L8.8 3.6c-.8-.5-1.8.1-1.8 1z"/></svg>
+          Watch
+        </button>
+      </form>
+      <p class="input-error" id="url-error" role="alert">Hmm, that doesn't look like a YouTube link. Try a video, Shorts, or playlist URL.</p>
     </div>
-    <div class="lib-grid" id="lib-grid" role="list"></div>
+
+    <!-- Player -->
+    <div id="player-section" aria-label="Video player">
+      <article class="player-card">
+        <div class="player-frame-wrap" id="frame-wrap">
+          <div class="player-skeleton" id="player-skeleton"><div class="spin" aria-label="Loading video"></div></div>
+        </div>
+        <div class="player-meta">
+          <div class="meta-thumb" id="meta-thumb" aria-hidden="true">▶</div>
+          <div class="meta-text">
+            <div id="video-title"><span class="skeleton-line" style="width:220px"></span></div>
+            <div id="video-channel"><span class="skeleton-line" style="width:120px;height:11px"></span></div>
+          </div>
+          <div class="player-actions">
+            <button class="chip-btn" id="fav-btn" title="Add to favorites (F)">
+              <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.7-10-9.3C.4 8.6 2.6 5 6.2 5c2.2 0 3.6 1.1 4.5 2.4h2.6C14.2 6.1 15.6 5 17.8 5c3.6 0 5.8 3.6 4.2 6.7C19.5 16.3 12 21 12 21z" transform="scale(0.92) translate(1,0.5)"/></svg>
+              <span id="fav-label">Favorite</span>
+            </button>
+            <button class="chip-btn" id="copy-btn" title="Copy share link (C)">
+              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy link
+            </button>
+            <button class="chip-btn" id="pip-btn" title="Picture-in-Picture (P)">
+              <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2.5"/><rect x="12" y="12" width="8" height="6" rx="1.5" fill="currentColor" stroke="none"/></svg>
+              PiP
+            </button>
+            <button class="chip-btn" id="focus-btn" title="Focus mode (D)">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+              Focus
+            </button>
+            <button class="chip-btn" id="fs-btn" title="Fullscreen (⇧F)">
+              <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+              Fullscreen
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Library -->
+    <div id="library" aria-label="Your library">
+      <div class="lib-header">
+        <div class="lib-tabs" role="tablist" aria-label="Library tabs">
+          <button class="lib-tab is-active" id="tab-history" role="tab" aria-selected="true">History <span class="count" id="history-count">0</span></button>
+          <button class="lib-tab" id="tab-favorites" role="tab" aria-selected="false">Favorites <span class="count" id="fav-count">0</span></button>
+        </div>
+        <button id="clear-history" title="Clear all history">Clear history</button>
+      </div>
+      <div class="lib-grid" id="lib-grid" role="list"></div>
+    </div>
   </section>
+
+  <!-- ===================== SHORTS VIEW ===================== -->
+  <section class="view" id="view-shorts" aria-label="Shorts">
+    <div class="shorts-topbar">
+      <h1 class="view-title" style="margin:0">Shorts</h1>
+      <div id="shorts-add-field">
+        <input id="shorts-add-input" type="text" inputmode="url" placeholder="Paste a Shorts link to add it to your feed…" spellcheck="false" aria-label="Add a Short">
+      </div>
+      <button id="shorts-add-btn">Add</button>
+    </div>
+    <div class="shorts-stage">
+      <div id="shorts-scroller" tabindex="0" aria-label="Shorts feed — scroll or use arrow keys"></div>
+      <div class="shorts-nav" aria-hidden="false">
+        <button id="shorts-prev" title="Previous Short (↑)" aria-label="Previous Short"><svg viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></button>
+        <button id="shorts-next" title="Next Short (↓)" aria-label="Next Short"><svg viewBox="0 0 24 24"><path d="M12 5v14M18.5 12.5 12 19l-6.5-6.5"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== INFORMATION VIEW ===================== -->
+  <section class="view" id="view-info" aria-label="Information">
+    <div id="info-hero">
+      <div class="hero-badge"><span class="dot"></span> No ads · No feed · No noise</div>
+      <h1>Watch YouTube<br>with <span class="grad">total clarity</span></h1>
+      <p class="hero-sub">Clarity Video is a distraction-free YouTube viewer. Paste any video, Short, or playlist link and watch in a clean player. Your focus, protected — nothing is tracked, everything stays in your browser.</p>
+    </div>
+
+    <div class="info-features">
+      <div class="info-card">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 4v5c0 4.4-3 7.4-7 9-4-1.6-7-4.6-7-9V7z"/></svg></span>
+        <h3>Ad-free &amp; private</h3>
+        <p>Videos play through YouTube's privacy-enhanced player — no tracking cookies, no recommendations rabbit hole, no clutter.</p>
+      </div>
+      <div class="info-card">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></svg></span>
+        <h3>Fast playback</h3>
+        <p>Performance mode automatically pauses background effects while a video plays, so every frame goes to your video.</p>
+      </div>
+      <div class="info-card">
+        <span class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg></span>
+        <h3>Shorts feed</h3>
+        <p>Scroll a vertical Shorts feed — seeded with starter picks and anything you watch or add yourself.</p>
+      </div>
+      <div class="info-card">
+        <span class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2.5"/><rect x="12" y="12" width="8" height="6" rx="1.5"/></svg></span>
+        <h3>Real Picture-in-Picture</h3>
+        <p>One click pops your video into a floating always-on-top window (Chrome / Edge), keeping your spot in the video.</p>
+      </div>
+    </div>
+
+    <div class="info-shortcuts">
+      <h2>Keyboard shortcuts</h2>
+      <div class="shortcut-list">
+        <div class="shortcut-item"><span>Focus URL input</span><span class="keys"><kbd>/</kbd></span></div>
+        <div class="shortcut-item"><span>Paste &amp; play</span><span class="keys"><kbd>⌘/Ctrl</kbd><kbd>V</kbd></span></div>
+        <div class="shortcut-item"><span>Toggle settings</span><span class="keys"><kbd>S</kbd></span></div>
+        <div class="shortcut-item"><span>Focus mode</span><span class="keys"><kbd>D</kbd></span></div>
+        <div class="shortcut-item"><span>Favorite current video</span><span class="keys"><kbd>F</kbd></span></div>
+        <div class="shortcut-item"><span>Copy share link</span><span class="keys"><kbd>C</kbd></span></div>
+        <div class="shortcut-item"><span>Picture-in-Picture</span><span class="keys"><kbd>P</kbd></span></div>
+        <div class="shortcut-item"><span>Fullscreen player</span><span class="keys"><kbd>⇧</kbd><kbd>F</kbd></span></div>
+        <div class="shortcut-item"><span>Cycle theme</span><span class="keys"><kbd>T</kbd></span></div>
+        <div class="shortcut-item"><span>Next / previous Short</span><span class="keys"><kbd>↓</kbd><kbd>↑</kbd></span></div>
+        <div class="shortcut-item"><span>Close panels / exit focus</span><span class="keys"><kbd>Esc</kbd></span></div>
+        <div class="shortcut-item"><span>This help</span><span class="keys"><kbd>?</kbd></span></div>
+      </div>
+    </div>
+
+    <p class="made-by">Clarity Video — Made by <strong>TTM</strong></p>
+  </section>
+
 </main>
 
 <!-- Focus mode exit pill -->
 <button id="focus-exit">Press <strong>Esc</strong> or click to exit Focus Mode</button>
 
-<!-- Floating action button — scroll back to top -->
+<!-- Floating action button -->
 <button id="fab" title="Back to top" aria-label="Back to top">
   <svg viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
 </button>
@@ -893,21 +994,21 @@ footer {
 
     <div class="setting-group">
       <h3>Theme</h3>
-      <div class="theme-grid" id="theme-grid"><!-- swatches injected --></div>
+      <div class="theme-grid" id="theme-grid"></div>
       <div class="setting-row" style="margin-top:10px">
-        <div><div class="label">YouTube style</div><div class="sub">Familiar red accents &amp; dark grey look</div></div>
-        <label class="toggle"><input type="checkbox" id="opt-yt"><span class="track"></span><span class="knob"></span></label>
-      </div>
-      <div class="setting-row">
         <div><div class="label">Follow system</div><div class="sub">Auto light / dark</div></div>
         <label class="toggle"><input type="checkbox" id="opt-system"><span class="track"></span><span class="knob"></span></label>
       </div>
     </div>
 
     <div class="setting-group">
-      <h3>Accent palette</h3>
-      <div class="palette-grid" id="palette-grid"><!-- palette swatches injected --></div>
-      <div class="palette-name" id="palette-name"></div>
+      <h3>Accent color</h3>
+      <div class="accent-row" id="accent-row">
+        <div class="accent-custom" title="Custom color">
+          <span class="swirl"></span>
+          <input type="color" id="accent-picker" value="#6c8cff" aria-label="Custom accent color">
+        </div>
+      </div>
     </div>
 
     <div class="setting-group">
@@ -944,6 +1045,10 @@ footer {
         <div><div class="label">Background effects</div><div class="sub">Orbs, shapes &amp; glow</div></div>
         <label class="toggle"><input type="checkbox" id="opt-fx" checked><span class="track"></span><span class="knob"></span></label>
       </div>
+      <div class="setting-row">
+        <div><div class="label">Performance mode</div><div class="sub">Pause effects while playing (smoother video)</div></div>
+        <label class="toggle"><input type="checkbox" id="opt-perf" checked><span class="track"></span><span class="knob"></span></label>
+      </div>
     </div>
 
     <div class="setting-group">
@@ -969,7 +1074,7 @@ footer {
   <div class="modal-card">
     <h2>Keyboard shortcuts</h2>
     <div class="shortcut-list">
-      <div class="shortcut-item"><span>Focus search / URL bar</span><span class="keys"><kbd>/</kbd></span></div>
+      <div class="shortcut-item"><span>Focus URL input</span><span class="keys"><kbd>/</kbd></span></div>
       <div class="shortcut-item"><span>Paste &amp; play</span><span class="keys"><kbd>⌘/Ctrl</kbd><kbd>V</kbd></span></div>
       <div class="shortcut-item"><span>Toggle settings</span><span class="keys"><kbd>S</kbd></span></div>
       <div class="shortcut-item"><span>Focus mode</span><span class="keys"><kbd>D</kbd></span></div>
@@ -978,6 +1083,7 @@ footer {
       <div class="shortcut-item"><span>Picture-in-Picture</span><span class="keys"><kbd>P</kbd></span></div>
       <div class="shortcut-item"><span>Fullscreen player</span><span class="keys"><kbd>⇧</kbd><kbd>F</kbd></span></div>
       <div class="shortcut-item"><span>Cycle theme</span><span class="keys"><kbd>T</kbd></span></div>
+      <div class="shortcut-item"><span>Next / previous Short</span><span class="keys"><kbd>↓</kbd><kbd>↑</kbd></span></div>
       <div class="shortcut-item"><span>Close panels / exit focus</span><span class="keys"><kbd>Esc</kbd></span></div>
       <div class="shortcut-item"><span>This help</span><span class="keys"><kbd>?</kbd></span></div>
     </div>
@@ -987,23 +1093,12 @@ footer {
 <!-- Toast -->
 <div id="toast" role="status" aria-live="polite"><span class="t-dot"></span><span id="toast-msg"></span></div>
 
-<!-- ===================== FOOTER ===================== -->
-<footer>
-  <div class="footer-inner">
-    <span class="ver">Clarity Video v2.0 · by TTM</span>
-    <span>Built for focus — nothing is tracked, everything stays in your browser.</span>
-    <span class="spacer"></span>
-    <a href="#" id="footer-shortcuts">Shortcuts</a>
-    <a href="#" id="footer-settings">Settings</a>
-  </div>
-</footer>
-
 <script>
 'use strict';
 /* ============================================================
-   CLARITY VIDEO — distraction-free YouTube viewer (by TTM)
-   Single-file app. Modules: Store, Theme, Parser, Player,
-   Search, Library, Settings, Shortcuts, Ambient, UI helpers.
+   CLARITY VIDEO — distraction-free YouTube viewer · Made by TTM
+   Modules: Store, Theme, Parser, Player (YT API), Library,
+   Home, Shorts, Settings, Shortcuts, Ambient, App, UI.
    ============================================================ */
 
 /* ---------------- Utilities ---------------- */
@@ -1028,29 +1123,16 @@ function timeAgo(ts) {
   const d = Math.floor(h / 24); if (d < 7) return `${d}d ago`;
   return new Date(ts).toLocaleDateString();
 }
-function fmtViews(n) {
-  if (!n && n !== 0) return '';
-  if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B views';
-  if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M views';
-  if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K views';
-  return n + ' views';
-}
-function fmtDuration(sec) {
-  if (!sec) return '';
-  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
-  return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
-}
 
-/* ---------------- Store (LocalStorage persistence) ---------------- */
+/* ---------------- Store ---------------- */
 const Store = {
   KEY: 'clarity.v1',
   defaults: {
     theme: 'midnight', systemTheme: false,
     accent: { h: 226, s: 100, l: 71 },
-    radius: 16, density: 1, glass: 62, motion: 1, fx: true,
+    radius: 16, density: 1, glass: 62, motion: 1, fx: true, perf: true,
     autoplay: true, saveHistory: true,
-    ytMode: false, preYT: null,
-    history: [], favorites: []
+    history: [], favorites: [], shortsFeed: []
   },
   state: null,
   load() {
@@ -1061,10 +1143,29 @@ const Store = {
     return this.state;
   },
   save() {
-    try { localStorage.setItem(this.KEY, JSON.stringify(this.state)); } catch { /* storage unavailable */ }
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.state)); } catch { /* unavailable */ }
   }
 };
 const S = Store.load();
+
+/* ---------------- oEmbed metadata cache ---------------- */
+const Meta = {
+  KEY: 'clarity.meta.v1',
+  cache: (() => { try { return JSON.parse(localStorage.getItem('clarity.meta.v1')) || {}; } catch { return {}; } })(),
+  persist() { try { localStorage.setItem(this.KEY, JSON.stringify(this.cache)); } catch {} },
+  async fetch(videoId) {
+    if (this.cache[videoId]) return this.cache[videoId];
+    try {
+      const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`);
+      if (!res.ok) return null;
+      const d = await res.json();
+      const meta = { title: d.title, author: d.author_name, thumb: d.thumbnail_url };
+      this.cache[videoId] = meta;
+      this.persist();
+      return meta;
+    } catch { return null; }
+  }
+};
 
 /* ---------------- Theme engine ---------------- */
 const THEMES = [
@@ -1077,44 +1178,25 @@ const THEMES = [
   { id: 'light',    name: 'Light',    sw: 'linear-gradient(135deg,#ffffff,#dfe4f0)' },
   { id: 'amoled',   name: 'AMOLED',   sw: 'linear-gradient(135deg,#000,#141417)' },
 ];
-
-/* Accent palette — every swatch is a color already used by the
-   theme palettes in these settings (orbs, glows & accents). */
-const PALETTE = [
-  { name: 'Indigo · Midnight',  h: 226, s: 100, l: 71 },
-  { name: 'Sky · Ocean',        h: 199, s: 95,  l: 60 },
-  { name: 'Cyan · Midnight',    h: 190, s: 90,  l: 55 },
-  { name: 'Teal · Ocean',       h: 170, s: 80,  l: 45 },
-  { name: 'Emerald · Emerald',  h: 152, s: 70,  l: 52 },
-  { name: 'Lime · Emerald',     h: 90,  s: 70,  l: 50 },
-  { name: 'Amber · Sunset',     h: 45,  s: 95,  l: 58 },
-  { name: 'Orange · Sunset',    h: 18,  s: 95,  l: 62 },
-  { name: 'Rose · Sunset',      h: 340, s: 85,  l: 60 },
-  { name: 'Magenta · Lavender', h: 310, s: 80,  l: 62 },
-  { name: 'Purple · Midnight',  h: 280, s: 85,  l: 62 },
-  { name: 'Violet · Lavender',  h: 265, s: 90,  l: 70 },
-  { name: 'Steel · Slate',      h: 215, s: 40,  l: 55 },
-  { name: 'Snow · Light',       h: 220, s: 15,  l: 88 },
+const ACCENTS = [
+  { h: 226, s: 100, l: 71 }, { h: 199, s: 95, l: 60 }, { h: 152, s: 70, l: 52 },
+  { h: 265, s: 90, l: 70 }, { h: 336, s: 90, l: 66 }, { h: 18, s: 95, l: 62 }, { h: 45, s: 95, l: 58 },
 ];
-const YT_ACCENT = { h: 0, s: 100, l: 50 }; // YouTube red
 
 const Theme = {
   apply(id, { silent = false } = {}) {
-    // Manually picking a non-YouTube theme leaves YouTube mode
-    if (S.ytMode && id !== 'youtube') { S.ytMode = false; const t = $('#opt-yt'); if (t) t.checked = false; }
     document.documentElement.dataset.theme = id;
     S.theme = id; Store.save();
     Settings.markActiveTheme();
-    if (!silent) toast(`Theme: ${THEMES.find(t => t.id === id)?.name || (id === 'youtube' ? 'YouTube' : id)}`);
+    if (!silent) toast(`Theme: ${THEMES.find(t => t.id === id)?.name || id}`);
   },
-  applyAccent(a, { keepYT = false } = {}) {
-    if (S.ytMode && !keepYT) { S.ytMode = false; const t = $('#opt-yt'); if (t) t.checked = false; }
+  applyAccent(a) {
     const r = document.documentElement.style;
     r.setProperty('--accent-h', a.h);
     r.setProperty('--accent-s', a.s + '%');
     r.setProperty('--accent-l', a.l + '%');
     r.setProperty('--on-accent', a.l > 62 ? '#0b0d14' : '#ffffff');
-    S.accent = { h: a.h, s: a.s, l: a.l }; Store.save();
+    S.accent = a; Store.save();
     Settings.markActiveAccent();
   },
   cycle() {
@@ -1132,40 +1214,33 @@ const Theme = {
       this.systemListener = sync;
       mq.addEventListener('change', sync);
     }
-  },
-  /* "YouTube style" — swaps accents to YouTube red + dark grey theme,
-     restores the previous look when turned off. */
-  setYouTubeMode(on) {
-    if (on) {
-      S.preYT = { theme: S.theme === 'youtube' ? 'midnight' : S.theme, accent: { ...S.accent } };
-      S.ytMode = true;
-      if (S.systemTheme) { S.systemTheme = false; $('#opt-system').checked = false; this.setSystem(false); }
-      document.documentElement.dataset.theme = 'youtube';
-      S.theme = 'youtube';
-      this.applyAccent(YT_ACCENT, { keepYT: true });
-      Store.save();
-      Settings.markActiveTheme();
-      toast('YouTube style on');
-    } else {
-      const p = S.preYT || { theme: Store.defaults.theme, accent: Store.defaults.accent };
-      S.ytMode = false; Store.save();
-      this.apply(p.theme, { silent: true });
-      this.applyAccent(p.accent);
-      toast('YouTube style off — your look is back');
-    }
   }
 };
 
-/* ---------------- URL Parser (videos / playlists — Shorts links play as normal videos) ---------------- */
+function hexToHsl(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0; const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      default: h = (r - g) / d + 4;
+    }
+    h /= 6;
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+/* ---------------- URL Parser ---------------- */
 const Parser = {
   parse(input) {
     const raw = (input || '').trim();
     if (!raw) return null;
-
-    if (/^[A-Za-z0-9_-]{11}$/.test(raw) && /^https?:/.test(raw) === false && raw.includes('.') === false && /[0-9_-]/.test(raw)) {
-      // Bare 11-char video ID (must contain a digit/dash/underscore to avoid matching plain words)
-      return { kind: 'video', videoId: raw, start: 0 };
-    }
+    if (/^[A-Za-z0-9_-]{11}$/.test(raw)) return { kind: 'video', videoId: raw, start: 0 };
 
     let url;
     try { url = new URL(raw.match(/^https?:\/\//i) ? raw : 'https://' + raw); }
@@ -1186,13 +1261,10 @@ const Parser = {
     }
     if (v && /^[A-Za-z0-9_-]{11}$/.test(v)) return { kind: 'video', videoId: v, listId: list || null, start };
     const m = path.match(/^\/(shorts|embed|live|v)\/([A-Za-z0-9_-]{11})/);
-    if (m) return { kind: 'video', videoId: m[2], listId: list || null, start };
+    if (m) return { kind: 'video', videoId: m[2], listId: list || null, start, isShort: m[1] === 'shorts' };
     if (path.startsWith('/playlist') && list) return { kind: 'playlist', listId: list, start: 0 };
     if (list) return { kind: 'playlist', listId: list, start: 0 };
     return null;
-  },
-  looksLikeUrl(s) {
-    return /^(https?:\/\/|www\.)/i.test(s) || /^[a-z0-9.-]+\.[a-z]{2,}\//i.test(s);
   },
   parseStart(t) {
     if (!t) return 0;
@@ -1211,50 +1283,71 @@ const Parser = {
   }
 };
 
+/* ---------------- YouTube IFrame API loader ----------------
+   Used so PiP can read the current playback time and resume.  */
+let YT_READY = false;
+window.onYouTubeIframeAPIReady = () => {
+  YT_READY = true;
+  Player.attachAPI();
+};
+(function loadYTAPI() {
+  const s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  s.async = true;
+  document.head.appendChild(s);
+})();
+
+/* ---------------- Perf mode ---------------- */
+function setPerfActive(on) {
+  document.documentElement.classList.toggle('perf-active', on && S.perf);
+}
+
 /* ---------------- Player ---------------- */
 const Player = {
   current: null,
   iframe: null,
+  ytp: null,       // YT.Player instance (when API loaded)
 
-  play(item, { fromLibrary = false } = {}) {
-    this.current = item;
-    const wrap = $('#frame-wrap');
-    const skel = $('#player-skeleton');
-
-    skel.classList.remove('hidden');
-    if (this.iframe) { this.iframe.remove(); this.iframe = null; }
-
+  buildSrc(item, { start = item.start || 0, autoplay = S.autoplay } = {}) {
     const p = new URLSearchParams({
       rel: '0',
       modestbranding: '1',
       iv_load_policy: '3',
       playsinline: '1',
-      autoplay: S.autoplay ? '1' : '0',
-      enablejsapi: '1',
-      origin: location.origin.startsWith('http') ? location.origin : ''
+      autoplay: autoplay ? '1' : '0',
+      enablejsapi: '1'
     });
-    if (item.start) p.set('start', String(item.start));
-
-    let src;
+    if (location.origin.startsWith('http')) p.set('origin', location.origin);
+    if (start) p.set('start', String(Math.floor(start)));
     if (item.kind === 'playlist') {
       p.set('list', item.listId); p.set('listType', 'playlist');
-      src = `https://www.youtube-nocookie.com/embed/videoseries?${p}`;
-    } else {
-      if (item.listId) p.set('list', item.listId);
-      src = `https://www.youtube-nocookie.com/embed/${item.videoId}?${p}`;
+      return `https://www.youtube-nocookie.com/embed/videoseries?${p}`;
     }
+    if (item.listId) p.set('list', item.listId);
+    return `https://www.youtube-nocookie.com/embed/${item.videoId}?${p}`;
+  },
+
+  play(item, { fromLibrary = false, startAt = null } = {}) {
+    App.show('watch', { silent: true });
+    this.current = item;
+    const wrap = $('#frame-wrap');
+    const skel = $('#player-skeleton');
+
+    skel.classList.remove('hidden');
+    this.destroyIframe();
 
     const f = document.createElement('iframe');
-    f.src = src;
+    f.src = this.buildSrc(item, startAt != null ? { start: startAt, autoplay: true } : {});
     f.title = 'YouTube video player';
     f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
     f.allowFullscreen = true;
     f.addEventListener('load', () => setTimeout(() => skel.classList.add('hidden'), 220));
     wrap.appendChild(f);
     this.iframe = f;
+    this.attachAPI();
+    setPerfActive(true);
 
     $('#player-section').classList.add('active');
-    $('#resume-chip').classList.remove('show');
     requestAnimationFrame(() =>
       $('#player-section').scrollIntoView({ behavior: 'smooth', block: 'start' })
     );
@@ -1264,6 +1357,25 @@ const Player = {
     if (S.saveHistory) Library.addHistory(item);
     else if (fromLibrary) Library.render();
     UI.updateFavButton();
+  },
+
+  attachAPI() {
+    if (!YT_READY || !this.iframe || !window.YT || !YT.Player) return;
+    try { this.ytp = new YT.Player(this.iframe); } catch { this.ytp = null; }
+  },
+
+  destroyIframe() {
+    if (this.ytp) { try { this.ytp.destroy(); } catch {} this.ytp = null; }
+    if (this.iframe) { this.iframe.remove(); this.iframe = null; }
+    setPerfActive(Shorts.iframe != null);
+  },
+
+  currentTime() {
+    try {
+      const t = this.ytp?.getCurrentTime?.();
+      if (typeof t === 'number' && isFinite(t)) return Math.floor(t);
+    } catch {}
+    return this.current?.start || 0;
   },
 
   renderMeta(item) {
@@ -1300,202 +1412,9 @@ const Player = {
   }
 };
 
-/* ---------------- Search — relevance-ranked ----------------
-   Finds the videos most similar to the query. Scores every
-   candidate on: exact/partial title match, CHANNEL NAME match,
-   keyword (token) overlap in title & description, fuzzy prefix
-   matches, phrase order, and a small view-count tiebreaker.
-   Remote results come from public keyless Invidious instances;
-   your own library is always searched too and merged in.       */
-const Search = {
-  INSTANCES: [
-    'https://inv.nadeko.net',
-    'https://invidious.nerdvpn.de',
-    'https://yewtu.be',
-    'https://invidious.f5.si',
-    'https://iv.melmac.space'
-  ],
-  seq: 0,
-  results: [],
-
-  norm(s) {
-    return String(s || '').toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
-  },
-  tokens(s) {
-    const STOP = new Set(['the','a','an','of','to','in','on','and','or','for','with','how','is','at','by','it']);
-    return this.norm(s).split(' ').filter(t => t && !STOP.has(t));
-  },
-
-  /** Relevance score: higher = more similar to the query. */
-  relevance(q, item) {
-    const qn = this.norm(q);
-    const qt = this.tokens(q);
-    if (!qn) return 0;
-    const title = this.norm(item.title);
-    const chan = this.norm(item.author);
-    const desc = this.norm(item.description || '').slice(0, 500);
-    let score = 0;
-
-    // Whole-phrase matches
-    if (title === qn) score += 40;
-    else if (title.includes(qn)) score += 18;
-    if (chan === qn) score += 32;                    // channel name = strong signal
-    else if (chan && (chan.includes(qn) || qn.includes(chan))) score += 15;
-
-    // Keyword / token matches
-    const tt = title.split(' ');
-    const ct = chan.split(' ');
-    const dt = new Set(desc.split(' '));
-    for (const t of qt) {
-      if (tt.includes(t)) score += 6;                                     // exact title keyword
-      else if (tt.some(w => w.startsWith(t) && t.length > 2)) score += 3; // fuzzy prefix
-      if (ct.includes(t)) score += 8;                                     // channel keyword
-      else if (ct.some(w => w.startsWith(t) && t.length > 2)) score += 4;
-      if (dt.has(t)) score += 1.5;                                        // description keyword
-    }
-
-    // Phrase-order bonus: query tokens appearing in sequence in the title
-    if (qt.length > 1) {
-      for (let i = 0; i < qt.length - 1; i++) {
-        const a = tt.indexOf(qt[i]), b = tt.indexOf(qt[i + 1]);
-        if (a !== -1 && b === a + 1) score += 2.5;
-      }
-    }
-
-    // Popularity tiebreaker (log-scaled so it never dominates relevance)
-    if (item.viewCount) score += Math.min(Math.log10(item.viewCount + 1) * 0.5, 4);
-    return score;
-  },
-
-  async run(q) {
-    const query = q.trim();
-    if (!query) return;
-    const my = ++this.seq;
-    this.query = query;
-
-    const section = $('#results-section');
-    section.classList.add('active');
-    $('#results-query').textContent = `“${query}”`;
-    $('#results-status').textContent = 'Searching…';
-    $('#results-grid').innerHTML = Array.from({ length: 8 }, () => `
-      <div class="result-skel">
-        <div class="sk-thumb"></div>
-        <div class="sk-body">
-          <span class="skeleton-line" style="width:90%"></span>
-          <span class="skeleton-line" style="width:55%;height:10px"></span>
-        </div>
-      </div>`).join('');
-    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-    // Remote (YouTube via keyless Invidious API) + local library, in parallel
-    const remote = await this.fetchRemote(query);
-    if (my !== this.seq) return; // superseded by a newer search
-
-    const lib = this.searchLibrary(query);
-    const seen = new Set();
-    const merged = [];
-
-    for (const r of (remote || [])) {
-      if (!r.videoId || seen.has(r.videoId)) continue;
-      seen.add(r.videoId);
-      merged.push({ ...r, score: this.relevance(query, r), inLibrary: lib.some(l => l.videoId === r.videoId) });
-    }
-    for (const l of lib) {
-      if (l.videoId && seen.has(l.videoId)) continue;
-      if (l.videoId) seen.add(l.videoId);
-      merged.push({ ...l, score: this.relevance(query, l) + 2, inLibrary: true }); // small familiarity boost
-    }
-
-    merged.sort((a, b) => b.score - a.score);
-    this.results = merged.slice(0, 24);
-
-    $('#results-status').textContent = remote
-      ? `${this.results.length} result${this.results.length === 1 ? '' : 's'}, ranked by similarity`
-      : (this.results.length
-          ? 'YouTube search unavailable — showing matches from your library'
-          : 'YouTube search unavailable right now');
-
-    this.render();
-  },
-
-  async fetchRemote(q) {
-    const tryInstance = (base) => new Promise((resolve, reject) => {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => { ctrl.abort(); reject(new Error('timeout')); }, 7000);
-      fetch(`${base}/api/v1/search?q=${encodeURIComponent(q)}&type=video`, { signal: ctrl.signal })
-        .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
-        .then(list => {
-          clearTimeout(timer);
-          if (!Array.isArray(list) || !list.length) return reject(new Error('empty'));
-          resolve(list.filter(x => x.type === 'video' && x.videoId).map(x => ({
-            kind: 'video',
-            videoId: x.videoId,
-            title: x.title,
-            author: x.author,
-            description: x.description || '',
-            viewCount: x.viewCount || 0,
-            lengthSeconds: x.lengthSeconds || 0,
-            publishedText: x.publishedText || '',
-            thumb: `https://i.ytimg.com/vi/${x.videoId}/hqdefault.jpg`
-          })));
-        })
-        .catch(e => { clearTimeout(timer); reject(e); });
-    });
-    try {
-      return await Promise.any(this.INSTANCES.map(tryInstance));
-    } catch { return null; }
-  },
-
-  searchLibrary(q) {
-    const seen = new Set();
-    const all = [];
-    for (const it of [...S.favorites, ...S.history]) {
-      const key = it.videoId || ('pl:' + it.listId);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      all.push(it);
-    }
-    return all
-      .map(it => ({ it, s: this.relevance(q, it) }))
-      .filter(x => x.s >= 5)
-      .sort((a, b) => b.s - a.s)
-      .slice(0, 8)
-      .map(x => ({ ...x.it }));
-  },
-
-  render() {
-    const grid = $('#results-grid');
-    if (!this.results.length) {
-      grid.innerHTML = `<div class="results-empty">No similar videos found for “${esc(this.query)}”.<br>Try different keywords, or include the channel name.</div>`;
-      return;
-    }
-    grid.innerHTML = this.results.map((r, i) => `
-      <button class="result-card" role="listitem" data-idx="${i}" style="animation-delay:${Math.min(i * 35, 350)}ms">
-        <div class="result-thumb">
-          ${r.thumb || r.videoId ? `<img src="${esc(r.thumb || `https://i.ytimg.com/vi/${r.videoId}/hqdefault.jpg`)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
-          ${r.lengthSeconds ? `<span class="dur">${fmtDuration(r.lengthSeconds)}</span>` : ''}
-          ${i === 0 ? '<span class="match-badge">Best match</span>' : (r.inLibrary ? '<span class="match-badge lib">In library</span>' : '')}
-        </div>
-        <div class="result-body">
-          <div class="result-title">${esc(r.title || 'YouTube Video')}</div>
-          <div class="result-chan"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>${esc(r.author || 'Unknown channel')}</div>
-          <div class="result-meta">${[fmtViews(r.viewCount), r.publishedText].filter(Boolean).join(' · ')}</div>
-        </div>
-      </button>`).join('');
-  },
-
-  close() {
-    this.seq++;
-    $('#results-section').classList.remove('active');
-  }
-};
-
-/* ---------------- Library (history + favorites) ---------------- */
+/* ---------------- Library ---------------- */
 const Library = {
   tab: 'history',
-
   keyOf: (i) => i.kind === 'playlist' ? `pl:${i.listId}` : `v:${i.videoId}`,
 
   addHistory(item) {
@@ -1547,13 +1466,11 @@ const Library = {
     $('#clear-history').style.display = tab === 'history' ? '' : 'none';
     this.render();
   },
-
   thumbFor(item) {
     if (item.thumb) return item.thumb;
     if (item.videoId) return `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`;
     return null;
   },
-
   render() {
     $('#history-count').textContent = S.history.length;
     $('#fav-count').textContent = S.favorites.length;
@@ -1578,13 +1495,11 @@ const Library = {
       const thumb = this.thumbFor(item);
       const fav = this.isFav(item);
       const when = item.watchedAt || item.favedAt;
-      const kind = item.kind === 'playlist' ? 'Playlist' : '';
+      const kind = item.kind === 'playlist' ? 'Playlist' : (item.isShort ? 'Short' : '');
       return `
       <div class="lib-card" role="listitem" data-idx="${idx}" tabindex="0" style="animation-delay:${Math.min(idx * 40, 320)}ms">
         <div class="lib-thumb">
-          ${thumb
-            ? `<img src="${esc(thumb)}" alt="" loading="lazy" onerror="this.remove()">`
-            : ''}
+          ${thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
           ${kind ? `<span class="kind-badge">${kind}</span>` : ''}
           <span class="play-ico"><span><svg viewBox="0 0 24 24"><path d="M7 4.6v14.8c0 .9 1 1.5 1.8 1L20.6 13c.8-.5.8-1.6 0-2L8.8 3.6c-.8-.5-1.8.1-1.8 1z"/></svg></span></span>
         </div>
@@ -1599,6 +1514,235 @@ const Library = {
         </div>
       </div>`;
     }).join('');
+  }
+};
+
+/* ---------------- Home (explore + watch again) ----------------
+   YouTube's real signed-in recommendations aren't reachable from
+   a static site, so Home offers "Watch again" from your history
+   plus a starter Explore grid whose titles are fetched live via
+   YouTube's public oEmbed endpoint. Unavailable videos self-hide. */
+const EXPLORE_IDS = [
+  'jNQXAC9IVRw', 'dQw4w9WgXcQ', '9bZkp7q19f0', 'kJQP7kiw5Fk', 'JGwWNGJdvx8',
+  'OPf0YbXqDm0', 'fJ9rUzIMcZQ', 'hTWKbfoikeg', 'YQHsXMglC9A', 'RgKAFK5djSk',
+  '60ItHLz5WEA', 'L_jWHffIx5E', 'pRpeEdMmmQ0', 'hT_nvWreIhg', '2Vv-BfVoq4g',
+  'FTQbiNvZqaY', 'Zi_XLOBDo_Y', 'Ks-_Mh1QhMc', 'HeQX2HjkcNo', 'h6fcK_fRYaI',
+  'aqz-KE-bpKQ', 'CevxZvSJLk8', 'kXYiU_JCYtU', '09R8_2nJtjg'
+];
+
+const Home = {
+  rendered: false,
+  cardHtml(id, meta) {
+    return `
+      <div class="lib-card" data-vid="${id}" tabindex="0" role="listitem">
+        <div class="lib-thumb">
+          <img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" loading="lazy" onerror="this.closest('.lib-card').remove()">
+          <span class="play-ico"><span><svg viewBox="0 0 24 24"><path d="M7 4.6v14.8c0 .9 1 1.5 1.8 1L20.6 13c.8-.5.8-1.6 0-2L8.8 3.6c-.8-.5-1.8.1-1.8 1z"/></svg></span></span>
+        </div>
+        <div class="lib-body">
+          <div class="lib-info">
+            <div class="lib-title" data-title-for="${id}">${meta ? esc(meta.title) : '<span class="skeleton-line" style="width:85%"></span>'}</div>
+            <div class="lib-when" data-author-for="${id}">${meta ? esc(meta.author || '') : ''}</div>
+          </div>
+        </div>
+      </div>`;
+  },
+  render() {
+    // Watch again row (videos only)
+    const again = S.history.filter(h => h.videoId).slice(0, 12);
+    $('#home-again-wrap').style.display = again.length ? '' : 'none';
+    $('#home-again').innerHTML = again.map(h => `
+      <div class="lib-card" data-vid="${esc(h.videoId)}" tabindex="0" role="listitem">
+        <div class="lib-thumb">
+          <img src="${esc(Library.thumbFor(h) || '')}" alt="" loading="lazy" onerror="this.remove()">
+          ${h.isShort ? '<span class="kind-badge">Short</span>' : ''}
+          <span class="play-ico"><span><svg viewBox="0 0 24 24"><path d="M7 4.6v14.8c0 .9 1 1.5 1.8 1L20.6 13c.8-.5.8-1.6 0-2L8.8 3.6c-.8-.5-1.8.1-1.8 1z"/></svg></span></span>
+        </div>
+        <div class="lib-body"><div class="lib-info">
+          <div class="lib-title">${esc(h.title || 'YouTube Video')}</div>
+          <div class="lib-when">${h.watchedAt ? timeAgo(h.watchedAt) : ''}</div>
+        </div></div>
+      </div>`).join('');
+
+    if (!this.rendered) {
+      $('#home-grid').innerHTML = EXPLORE_IDS.map(id => this.cardHtml(id, Meta.cache[id])).join('');
+      this.rendered = true;
+      this.hydrate();
+    }
+  },
+  async hydrate() {
+    for (const id of EXPLORE_IDS) {
+      if (Meta.cache[id]) { this.applyMeta(id, Meta.cache[id]); continue; }
+      Meta.fetch(id).then(meta => {
+        if (meta) this.applyMeta(id, meta);
+        else $(`#home-grid .lib-card[data-vid="${id}"]`)?.remove();
+      });
+    }
+  },
+  applyMeta(id, meta) {
+    const t = $(`[data-title-for="${id}"]`);
+    const a = $(`[data-author-for="${id}"]`);
+    if (t) t.textContent = meta.title;
+    if (a) a.textContent = meta.author || '';
+  }
+};
+
+/* ---------------- Shorts ----------------
+   Vertical snap-scroll feed. Only the active slide mounts a live
+   iframe (fast + battery friendly); others show their thumbnail.
+   Feed = your watched/added Shorts first, then starter picks.   */
+const SHORTS_STARTER_IDS = [
+  '9bZkp7q19f0', 'OPf0YbXqDm0', '60ItHLz5WEA', 'kJQP7kiw5Fk',
+  'hT_nvWreIhg', 'L_jWHffIx5E', 'FTQbiNvZqaY', 'CevxZvSJLk8',
+  'RgKAFK5djSk', 'pRpeEdMmmQ0', 'Zi_XLOBDo_Y', 'kXYiU_JCYtU'
+];
+
+const Shorts = {
+  feed: [], active: -1, iframe: null, observer: null, built: false,
+
+  buildFeed() {
+    const seen = new Set();
+    const feed = [];
+    const push = (id) => { if (id && !seen.has(id)) { seen.add(id); feed.push(id); } };
+    (S.shortsFeed || []).forEach(push);                                   // user-added
+    [...S.favorites, ...S.history].filter(i => i.isShort && i.videoId)   // watched shorts
+      .forEach(i => push(i.videoId));
+    SHORTS_STARTER_IDS.forEach(push);                                     // starter picks
+    this.feed = feed;
+  },
+
+  enter() {
+    this.buildFeed();
+    this.render();
+    // resize scroller to viewport
+    requestAnimationFrame(() => {
+      if (this.active < 0 && this.feed.length) this.setActive(0, { scroll: false });
+    });
+  },
+  leave() {
+    this.unmount();
+    this.active = -1;
+  },
+
+  render() {
+    const sc = $('#shorts-scroller');
+    if (!this.feed.length) {
+      sc.innerHTML = `<div class="lib-empty" style="align-self:stretch"><div>No Shorts yet — paste a Shorts link above to start your feed.</div></div>`;
+      return;
+    }
+    sc.innerHTML = this.feed.map((id, i) => {
+      const meta = Meta.cache[id];
+      return `
+      <div class="short-slide" data-i="${i}" data-vid="${id}">
+        <img class="short-thumb" src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" loading="lazy">
+        <button class="short-play" aria-label="Play Short">
+          <span><svg viewBox="0 0 24 24"><path d="M7 4.6v14.8c0 .9 1 1.5 1.8 1L20.6 13c.8-.5.8-1.6 0-2L8.8 3.6c-.8-.5-1.8.1-1.8 1z"/></svg></span>
+        </button>
+        <div class="short-overlay">
+          <div class="ti" data-short-title="${id}">${meta ? esc(meta.title) : ''}</div>
+          <div class="ch" data-short-ch="${id}">${meta ? esc(meta.author || '') : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Observe which slide is centered
+    if (this.observer) this.observer.disconnect();
+    this.observer = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting && e.intersectionRatio >= 0.6) {
+          const i = +e.target.dataset.i;
+          if (i !== this.active) this.setActive(i, { scroll: false });
+        }
+      }
+    }, { root: sc, threshold: [0.6] });
+    $$('.short-slide', sc).forEach(el => this.observer.observe(el));
+  },
+
+  setActive(i, { scroll = true } = {}) {
+    if (i < 0 || i >= this.feed.length) return;
+    this.unmount();
+    this.active = i;
+    const slide = $(`.short-slide[data-i="${i}"]`);
+    if (!slide) return;
+    if (scroll) slide.scrollIntoView({ behavior: S.motion === 0 ? 'auto' : 'smooth', block: 'center' });
+
+    const id = this.feed[i];
+    const p = new URLSearchParams({
+      rel: '0', modestbranding: '1', playsinline: '1', autoplay: '1',
+      loop: '1', playlist: id, iv_load_policy: '3'
+    });
+    const f = document.createElement('iframe');
+    f.src = `https://www.youtube-nocookie.com/embed/${id}?${p}`;
+    f.title = 'YouTube Short';
+    f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    slide.appendChild(f);
+    slide.querySelector('.short-play')?.remove();
+    this.iframe = f;
+    setPerfActive(true);
+
+    // hydrate title
+    if (!Meta.cache[id]) Meta.fetch(id).then(m => {
+      if (!m) return;
+      const t = $(`[data-short-title="${id}"]`), c = $(`[data-short-ch="${id}"]`);
+      if (t) t.textContent = m.title;
+      if (c) c.textContent = m.author || '';
+    });
+  },
+
+  unmount() {
+    if (this.iframe) {
+      const slide = this.iframe.parentElement;
+      this.iframe.remove();
+      this.iframe = null;
+      // restore play button so the slide is replayable
+      if (slide && !slide.querySelector('.short-play')) {
+        const b = document.createElement('button');
+        b.className = 'short-play';
+        b.setAttribute('aria-label', 'Play Short');
+        b.innerHTML = '<span><svg viewBox="0 0 24 24"><path d="M7 4.6v14.8c0 .9 1 1.5 1.8 1L20.6 13c.8-.5.8-1.6 0-2L8.8 3.6c-.8-.5-1.8.1-1.8 1z"/></svg></span>';
+        slide.appendChild(b);
+      }
+    }
+    setPerfActive(Player.iframe != null);
+  },
+
+  next() { this.setActive(Math.min(this.active + 1, this.feed.length - 1)); },
+  prev() { this.setActive(Math.max(this.active - 1, 0)); },
+
+  add(rawUrl) {
+    const item = Parser.parse(rawUrl);
+    if (!item || !item.videoId) return toast('That doesn\u2019t look like a YouTube video link');
+    if (!S.shortsFeed.includes(item.videoId)) {
+      S.shortsFeed.unshift(item.videoId);
+      if (S.shortsFeed.length > 100) S.shortsFeed.length = 100;
+      Store.save();
+    }
+    this.buildFeed();
+    this.render();
+    const i = this.feed.indexOf(item.videoId);
+    this.setActive(i >= 0 ? i : 0);
+    toast('Added to your Shorts feed');
+  }
+};
+
+/* ---------------- App views ---------------- */
+const App = {
+  view: 'watch',
+  show(view, { silent = false } = {}) {
+    if (this.view === view) {
+      // still update nav highlight in case of programmatic call
+      $$('.nav-link[data-view]').forEach(a => a.classList.toggle('is-active', a.dataset.view === view));
+      return;
+    }
+    if (this.view === 'shorts') Shorts.leave();
+    this.view = view;
+    $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
+    $$('.nav-link[data-view]').forEach(a => a.classList.toggle('is-active', a.dataset.view === view));
+    document.body.classList.remove('focus-mode');
+    if (view === 'home') Home.render();
+    if (view === 'shorts') Shorts.enter();
+    if (!silent) window.scrollTo({ top: 0, behavior: S.motion === 0 ? 'auto' : 'smooth' });
   }
 };
 
@@ -1624,27 +1768,27 @@ const Settings = {
         <span class="nm">${t.name}</span>
       </button>`).join('');
   },
-  buildPalette() {
-    $('#palette-grid').innerHTML = PALETTE.map(a => `
-      <button class="palette-dot" data-accent='${JSON.stringify(a)}'
-        data-dark-check="${a.l <= 62 ? 1 : 0}"
-        style="background:hsl(${a.h},${a.s}%,${a.l}%)"
-        title="${a.name}" aria-label="${a.name}"></button>`).join('');
+  buildAccentRow() {
+    const custom = $('.accent-custom', $('#accent-row'));
+    ACCENTS.forEach(a => {
+      const b = document.createElement('button');
+      b.className = 'accent-dot';
+      b.style.background = `hsl(${a.h},${a.s}%,${a.l}%)`;
+      b.dataset.accent = JSON.stringify(a);
+      b.title = 'Accent color';
+      b.setAttribute('aria-label', 'Accent color');
+      custom.parentNode.insertBefore(b, custom);
+    });
   },
   markActiveTheme() {
     $$('.theme-swatch').forEach(el =>
       el.classList.toggle('is-active', el.dataset.theme === S.theme));
   },
   markActiveAccent() {
-    let activeName = '';
-    $$('.palette-dot').forEach(el => {
+    $$('.accent-dot').forEach(el => {
       const a = JSON.parse(el.dataset.accent);
-      const on = a.h === S.accent.h && a.s === S.accent.s && a.l === S.accent.l;
-      el.classList.toggle('is-active', on);
-      if (on) activeName = a.name;
+      el.classList.toggle('is-active', a.h === S.accent.h && a.l === S.accent.l);
     });
-    const nameEl = $('#palette-name');
-    if (nameEl) nameEl.textContent = activeName || (S.ytMode ? 'YouTube Red (YouTube style)' : '');
   },
   markSeg(segId, value) {
     $$(`#${segId} button`).forEach(b =>
@@ -1653,7 +1797,7 @@ const Settings = {
 
   applyAll() {
     const r = document.documentElement.style;
-    Theme.applyAccent(S.accent, { keepYT: true });
+    Theme.applyAccent(S.accent);
     document.documentElement.dataset.theme = S.theme;
     r.setProperty('--radius', S.radius + 'px');
     r.setProperty('--density', S.density);
@@ -1664,8 +1808,8 @@ const Settings = {
     $('#opt-radius').value = S.radius; $('#radius-val').textContent = S.radius + 'px';
     $('#opt-glass').value = S.glass; $('#glass-val').textContent = S.glass + '%';
     $('#opt-system').checked = S.systemTheme;
-    $('#opt-yt').checked = S.ytMode;
     $('#opt-fx').checked = S.fx;
+    $('#opt-perf').checked = S.perf;
     $('#opt-autoplay').checked = S.autoplay;
     $('#opt-history').checked = S.saveHistory;
     this.markActiveTheme();
@@ -1677,7 +1821,7 @@ const Settings = {
   },
 
   reset() {
-    const keep = { history: S.history, favorites: S.favorites };
+    const keep = { history: S.history, favorites: S.favorites, shortsFeed: S.shortsFeed };
     Object.assign(S, JSON.parse(JSON.stringify(Store.defaults)), keep);
     Store.save();
     Theme.setSystem(false);
@@ -1691,7 +1835,7 @@ function syncRangeFill(input) {
   input.style.setProperty('--fill', pct + '%');
 }
 
-/* ---------------- UI helpers & wiring ---------------- */
+/* ---------------- UI helpers ---------------- */
 const UI = {
   updateFavButton() {
     const fav = Library.isFav(Player.current);
@@ -1699,28 +1843,17 @@ const UI = {
     $('#fav-label').textContent = fav ? 'Favorited' : 'Favorite';
   },
 
-  /** Omnibox: a valid YouTube URL plays immediately; anything else searches. */
-  handleSubmit(raw) {
-    const v = (raw || '').trim();
+  handleSubmit(rawUrl) {
+    const item = Parser.parse(rawUrl);
     const err = $('#url-error');
-    if (!v) { $('#url-input').focus(); return false; }
-
-    const item = Parser.parse(v);
-    if (item) {
-      err.classList.remove('show');
-      Player.play(item);
-      $('#url-input').value = '';
-      return true;
-    }
-    if (Parser.looksLikeUrl(v)) {
-      // A URL, but not a valid YouTube one
+    if (!item) {
       err.classList.add('show');
       $('#url-input').focus();
       return false;
     }
-    // Keywords → similarity search
     err.classList.remove('show');
-    Search.run(v);
+    Player.play(item);
+    $('#url-input').value = '';
     return true;
   },
 
@@ -1747,6 +1880,7 @@ const UI = {
 
   toggleFocusMode() {
     if (!Player.current) return toast('Play something first');
+    App.show('watch', { silent: true });
     document.body.classList.toggle('focus-mode');
   },
 
@@ -1756,20 +1890,49 @@ const UI = {
     else (wrap.requestFullscreen || wrap.webkitRequestFullscreen)?.call(wrap);
   },
 
-  pip() {
-    if (!Player.current) return toast('Play something first');
-    if (document.pictureInPictureEnabled || 'documentPictureInPicture' in window) {
-      toast('Right-click the video twice → "Picture in picture"');
-    } else {
-      toast('Picture-in-Picture is not supported in this browser');
+  /* Real Picture-in-Picture via the Document PiP API (Chrome/Edge 116+).
+     Pops the video into a floating always-on-top window, keeping the
+     playback position (read through the YouTube IFrame API), and resumes
+     the main player near the right spot when the PiP window closes. */
+  pipOpen: false,
+  async pip() {
+    if (!Player.current || !Player.iframe) return toast('Play something first');
+    if (this.pipOpen) return toast('Already in Picture-in-Picture');
+    if (!('documentPictureInPicture' in window)) {
+      return toast('PiP needs Chrome or Edge 116+ — try Fullscreen instead');
     }
-  },
+    try {
+      const t = Player.currentTime();
+      try { Player.ytp?.pauseVideo?.(); } catch {}
 
-  showResumeChip() {
-    const last = S.history[0];
-    if (!last || Player.current) return;
-    $('#resume-title').textContent = 'Resume · ' + (last.title || (last.kind === 'playlist' ? 'YouTube Playlist' : 'last video'));
-    $('#resume-chip').classList.add('show');
+      const win = await window.documentPictureInPicture.requestWindow({ width: 480, height: 270 });
+      this.pipOpen = true;
+      const doc = win.document;
+      doc.title = 'Clarity Video — PiP';
+      doc.body.style.cssText = 'margin:0;background:#000;overflow:hidden';
+
+      const f = doc.createElement('iframe');
+      f.src = Player.buildSrc(Player.current, { start: t, autoplay: true });
+      f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+      f.allowFullscreen = true;
+      f.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:0';
+      doc.body.appendChild(f);
+
+      const openedAt = Date.now();
+      win.addEventListener('pagehide', () => {
+        this.pipOpen = false;
+        // resume main player roughly where PiP left off
+        const resume = Math.max(0, t + Math.floor((Date.now() - openedAt) / 1000) - 1);
+        try {
+          Player.ytp?.seekTo?.(resume, true);
+          Player.ytp?.playVideo?.();
+        } catch {}
+      });
+      toast('Playing in Picture-in-Picture');
+    } catch (err) {
+      this.pipOpen = false;
+      toast('Could not open PiP — ' + (err?.message || 'blocked by browser'));
+    }
   }
 };
 
@@ -1813,12 +1976,17 @@ const Shortcuts = {
       }
       if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
 
+      // Shorts navigation
+      if (App.view === 'shorts' && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        e.key === 'ArrowDown' ? Shorts.next() : Shorts.prev();
+        return;
+      }
+
       switch (e.key) {
-        case '/': e.preventDefault(); $('#url-input').focus(); break;
+        case '/': e.preventDefault(); App.show('watch', { silent: true }); $('#url-input').focus(); break;
         case '?': this.toggleHelp(); break;
-        case 's': case 'S':
-          if (e.shiftKey) break;
-          Settings.toggle(); break;
+        case 's': Settings.toggle(); break;
         case 't': Theme.cycle(); break;
         case 'd': case 'D': UI.toggleFocusMode(); break;
         case 'f':
@@ -1839,16 +2007,21 @@ const Shortcuts = {
 
 /* ---------------- Event wiring ---------------- */
 function wireEvents() {
-  // Omnibox form
+  // View navigation
+  $$('.nav-link[data-view]').forEach(a =>
+    a.addEventListener('click', (e) => { e.preventDefault(); App.show(a.dataset.view); }));
+  $('#brand-home').addEventListener('click', (e) => { e.preventDefault(); App.show('watch'); });
+
+  // Navbar color wheel — pick any accent color
+  $('#nav-accent-picker').addEventListener('input', (e) => Theme.applyAccent(hexToHsl(e.target.value)));
+
+  // URL form
   $('#url-form').addEventListener('submit', (e) => {
     e.preventDefault();
     UI.handleSubmit($('#url-input').value);
   });
   $('#url-input').addEventListener('input', () => $('#url-error').classList.remove('show'));
   $('#paste-btn').addEventListener('click', () => UI.pasteAndMaybePlay());
-  $('#resume-chip').addEventListener('click', () => {
-    if (S.history[0]) Player.play({ ...S.history[0] }, { fromLibrary: true });
-  });
 
   // Player actions
   $('#fav-btn').addEventListener('click', () => { Library.toggleFav(Player.current); UI.updateFavButton(); });
@@ -1857,15 +2030,6 @@ function wireEvents() {
   $('#focus-btn').addEventListener('click', () => UI.toggleFocusMode());
   $('#fs-btn').addEventListener('click', () => UI.fullscreen());
   $('#focus-exit').addEventListener('click', () => document.body.classList.remove('focus-mode'));
-
-  // Search results
-  $('#results-grid').addEventListener('click', (e) => {
-    const card = e.target.closest('.result-card');
-    if (!card) return;
-    const r = Search.results[+card.dataset.idx];
-    if (r) Player.play({ kind: 'video', videoId: r.videoId, listId: r.listId || null, start: 0, title: r.title, author: r.author, thumb: r.thumb });
-  });
-  $('#results-close').addEventListener('click', () => Search.close());
 
   // Library
   $('#tab-history').addEventListener('click', () => Library.setTab('history'));
@@ -1888,16 +2052,41 @@ function wireEvents() {
     if (e.key === 'Enter' && e.target.classList.contains('lib-card')) e.target.click();
   });
 
-  // Nav & footer
+  // Home — click any card to play
+  const homeClick = (e) => {
+    const card = e.target.closest('.lib-card[data-vid]');
+    if (card) Player.play({ kind: 'video', videoId: card.dataset.vid, start: 0 });
+  };
+  $('#home-grid').addEventListener('click', homeClick);
+  $('#home-again').addEventListener('click', homeClick);
+  const homeKey = (e) => { if (e.key === 'Enter') homeClick(e); };
+  $('#home-grid').addEventListener('keydown', homeKey);
+  $('#home-again').addEventListener('keydown', homeKey);
+
+  // Shorts
+  $('#shorts-add-btn').addEventListener('click', () => {
+    const v = $('#shorts-add-input').value.trim();
+    if (v) { Shorts.add(v); $('#shorts-add-input').value = ''; }
+  });
+  $('#shorts-add-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); $('#shorts-add-btn').click(); }
+  });
+  $('#shorts-prev').addEventListener('click', () => Shorts.prev());
+  $('#shorts-next').addEventListener('click', () => Shorts.next());
+  $('#shorts-scroller').addEventListener('click', (e) => {
+    const play = e.target.closest('.short-play');
+    if (play) {
+      const slide = play.closest('.short-slide');
+      Shorts.setActive(+slide.dataset.i, { scroll: false });
+    }
+  });
+
+  // Nav buttons
   $('#settings-btn').addEventListener('click', () => Settings.toggle());
   $('#settings-close').addEventListener('click', () => Settings.close());
   $('#settings-overlay').addEventListener('click', () => Settings.close());
-  $('#theme-quick').addEventListener('click', () => Theme.cycle());
   $('#shortcuts-btn').addEventListener('click', () => Shortcuts.toggleHelp());
-  $('#footer-shortcuts').addEventListener('click', (e) => { e.preventDefault(); Shortcuts.toggleHelp(true); });
-  $('#footer-settings').addEventListener('click', (e) => { e.preventDefault(); Settings.open(); });
   $('#shortcuts-modal').addEventListener('click', (e) => { if (e.target.id === 'shortcuts-modal') Shortcuts.toggleHelp(false); });
-  $('#brand-home').addEventListener('click', (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
   // Settings controls
   $('#theme-grid').addEventListener('click', (e) => {
@@ -1906,16 +2095,12 @@ function wireEvents() {
     if (S.systemTheme) { S.systemTheme = false; $('#opt-system').checked = false; Theme.setSystem(false); }
     Theme.apply(b.dataset.theme);
   });
-  $('#palette-grid').addEventListener('click', (e) => {
-    const d = e.target.closest('.palette-dot');
-    if (!d) return;
-    const a = JSON.parse(d.dataset.accent);
-    Theme.applyAccent(a);
-    toast('Accent: ' + a.name);
+  $('#accent-row').addEventListener('click', (e) => {
+    const d = e.target.closest('.accent-dot');
+    if (d) Theme.applyAccent(JSON.parse(d.dataset.accent));
   });
-  $('#opt-yt').addEventListener('change', (e) => Theme.setYouTubeMode(e.target.checked));
+  $('#accent-picker').addEventListener('input', (e) => Theme.applyAccent(hexToHsl(e.target.value)));
   $('#opt-system').addEventListener('change', (e) => {
-    if (e.target.checked && S.ytMode) Theme.setYouTubeMode(false), ($('#opt-yt').checked = false);
     Theme.setSystem(e.target.checked);
     if (!e.target.checked) toast('System theme off');
   });
@@ -1948,14 +2133,18 @@ function wireEvents() {
     S.fx = e.target.checked; Store.save();
     document.documentElement.classList.toggle('fx-off', !S.fx);
   });
+  $('#opt-perf').addEventListener('change', (e) => {
+    S.perf = e.target.checked; Store.save();
+    setPerfActive(Player.iframe != null || Shorts.iframe != null);
+  });
   $('#opt-autoplay').addEventListener('change', (e) => { S.autoplay = e.target.checked; Store.save(); });
   $('#opt-history').addEventListener('change', (e) => { S.saveHistory = e.target.checked; Store.save(); });
   $('#reset-settings').addEventListener('click', () => Settings.reset());
 
-  // FAB — appears after scrolling
+  // FAB
   const fab = $('#fab');
   window.addEventListener('scroll', () => {
-    fab.classList.toggle('show', window.scrollY > 320);
+    fab.classList.toggle('show', window.scrollY > 420);
   }, { passive: true });
   fab.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 }
@@ -1963,27 +2152,24 @@ function wireEvents() {
 /* ---------------- Boot ---------------- */
 function init() {
   Settings.buildThemeGrid();
-  Settings.buildPalette();
+  Settings.buildAccentRow();
   Settings.applyAll();
-  if (S.systemTheme && !S.ytMode) Theme.setSystem(true);
+  if (S.systemTheme) Theme.setSystem(true);
   Library.setTab('history');
   wireEvents();
   Shortcuts.init();
   Ambient.init();
 
-  // Deep-links: index.html?v=<youtube url>  or  index.html?q=<search terms>
+  // Deep links: ?v=<youtube url or id>, ?view=home|watch|shorts|info
   const params = new URLSearchParams(location.search);
-  const v = params.get('v');
-  const q = params.get('q');
-  if (v) {
-    const item = Parser.parse(v) || Parser.parse(decodeURIComponent(v));
-    if (item) { Player.play(item); return; }
+  const q = params.get('v');
+  const view = params.get('view');
+  if (q) {
+    const item = Parser.parse(q) || Parser.parse(decodeURIComponent(q));
+    if (item) Player.play(item);
+  } else if (view && ['home', 'watch', 'shorts', 'info'].includes(view)) {
+    App.show(view, { silent: true });
   }
-  if (q) { Search.run(q); return; }
-
-  // Straight to watch: offer one-tap resume of the last video
-  UI.showResumeChip();
-  $('#url-input').focus();
 }
 document.addEventListener('DOMContentLoaded', init);
 </script>
