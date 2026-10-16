@@ -1,0 +1,6 @@
+{
+  "name": "Clarity Video",
+  "description": "Distraction-free YouTube viewer. Paste a link or search, watch in peace with themes, focus mode, and history.",
+  "permissions": [],
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
