@@ -32,6 +32,7 @@ export const App: React.FC = () => {
 
   const [currentVideo, setCurrentVideo] = useState<PlayItem | null>(null);
   const [searchValue, setSearchValue] = useState('');
+  const [submittedSearchQuery, setSubmittedSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchResults, setSearchResults] = useState<PlayItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -46,7 +47,6 @@ export const App: React.FC = () => {
   const navbarSearchRef = useRef<NavbarSearchHandle>(null);
   const toastTimeoutRef = useRef<number | null>(null);
   const searchSeqRef = useRef<number>(0);
-  const debounceTimerRef = useRef<number | null>(null);
 
   // Toast trigger
   const showToast = useCallback((msg: string) => {
@@ -141,14 +141,16 @@ export const App: React.FC = () => {
   const executeSearch = useCallback(
     async (q: string) => {
       const query = q.trim();
+      const seq = ++searchSeqRef.current;
       if (!query) {
+        setSubmittedSearchQuery('');
         setSearchResults([]);
         setIsSearching(false);
         setSearchStatus('');
         return;
       }
 
-      const seq = ++searchSeqRef.current;
+      setSubmittedSearchQuery(query);
       setIsSearching(true);
       setSearchStatus('Searching…');
 
@@ -195,29 +197,14 @@ export const App: React.FC = () => {
     [settings.favorites, settings.history]
   );
 
-  // Debounced search when searchValue changes and search is active
-  useEffect(() => {
-    if (!isSearchActive) return;
-
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    if (!searchValue.trim()) {
-      setSearchResults([]);
-      setIsSearching(false);
-      setSearchStatus('');
-      return;
-    }
-
-    debounceTimerRef.current = window.setTimeout(() => {
-      executeSearch(searchValue);
-    }, 280);
-
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
-  }, [searchValue, isSearchActive, executeSearch]);
+  const handleSearchChange = (value: string) => {
+    searchSeqRef.current += 1;
+    setSearchValue(value);
+    setSubmittedSearchQuery('');
+    setSearchResults([]);
+    setIsSearching(false);
+    setSearchStatus('');
+  };
 
   // Initial deep links
   useEffect(() => {
@@ -542,7 +529,7 @@ export const App: React.FC = () => {
       <Navbar
         ref={navbarSearchRef}
         searchValue={searchValue}
-        onSearchChange={setSearchValue}
+        onSearchChange={handleSearchChange}
         isSearchActive={isSearchActive}
         onSearchActive={setIsSearchActive}
         onPlay={playVideo}
@@ -551,7 +538,7 @@ export const App: React.FC = () => {
           setIsSearchActive(true);
         }}
         onClearSearch={() => {
-          setSearchValue('');
+          handleSearchChange('');
           setSearchResults([]);
         }}
         onOpenLibrary={() => setIsLibraryOpen(true)}
@@ -567,7 +554,7 @@ export const App: React.FC = () => {
         {/* If Search is active (pressed), it takes up the entire area! */}
         {isSearchActive ? (
           <SearchTakeover
-            query={searchValue}
+            query={submittedSearchQuery}
             results={searchResults}
             loading={isSearching}
             status={searchStatus}
