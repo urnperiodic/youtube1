@@ -57,6 +57,7 @@ async function fetchInvidiousFallback(q: string): Promise<any[]> {
 }
 
 export default defineConfig({
+  base: process.env.GITHUB_ACTIONS ? '/youtube1/' : '/',
   plugins: [
     react(),
     {
