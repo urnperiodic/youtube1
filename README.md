@@ -6,7 +6,7 @@ A distraction-free YouTube viewer built with React, TypeScript, and Vite. Watch 
 
 - **Omnibox Command Bar**: Paste YouTube video URLs, YouTube Shorts, or playlist links to watch immediately, or type keywords to search.
 - **Privacy-Friendly Embed Player**: Plays videos via `youtube-nocookie.com` with clean controls, aspect-ratio preservation, and responsive layout.
-- **Real-Time oEmbed Metadata**: Fetches video titles and author/channel details automatically.
+- **Real-Time oEmbed Metadata**: Fetches vidqeo titles and author/channel details automatically.
 - **Relevance-Ranked Search**: Searches videos across public Invidious instances + local library with intelligent token and channel weighting.
 - **Personal Library**: Local history (up to 60 items) and saved favorites with one-click toggles and persistence in browser storage (`localStorage`).
 - **Comprehensive Theming**:
