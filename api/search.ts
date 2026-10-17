@@ -1,5 +1,40 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+const INVIDIOUS_INSTANCES = [
+  'https://inv.nadeko.net',
+  'https://invidious.nerdvpn.de',
+  'https://yewtu.be',
+  'https://invidious.f5.si',
+  'https://iv.melmac.space',
+];
+
+async function fetchInvidiousFallback(q: string): Promise<any[]> {
+  const tryInstance = async (base: string): Promise<any[]> => {
+    const response = await fetch(`${base}/api/v1/search?q=${encodeURIComponent(q)}&type=video`);
+    if (!response.ok) throw new Error(`invidious ${response.status}`);
+
+    const list = await response.json();
+    if (!Array.isArray(list) || !list.length) return [];
+
+    return list
+      .filter((x: any) => x.type === 'video' && x.videoId)
+      .map((x: any) => ({
+        kind: 'video',
+        videoId: x.videoId,
+        title: decodeHtml(x.title),
+        author: decodeHtml(x.author),
+        description: decodeHtml(x.description || ''),
+        viewCount: x.viewCount || 0,
+        lengthSeconds: x.lengthSeconds || 0,
+        publishedAt: x.publishedText || '',
+        thumb: `https://i.ytimg.com/vi/${x.videoId}/hqdefault.jpg`,
+      }));
+  };
+
+  const results = await Promise.any(INVIDIOUS_INSTANCES.map(tryInstance));
+  return Array.isArray(results) ? results : [];
+}
+
 function decodeHtml(html?: string): string {
   if (!html) return '';
   return html
@@ -28,7 +63,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'YOUTUBE_API_KEY environment variable not set on server' });
+    try {
+      const fallback = await fetchInvidiousFallback(q);
+      return res.status(200).json(fallback);
+    } catch {
+      return res.status(200).json([]);
+    }
   }
 
   try {
@@ -101,6 +141,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json(results);
   } catch (err: any) {
-    return res.status(500).json({ error: err.message || 'Internal server error' });
+    try {
+      const fallback = await fetchInvidiousFallback(q);
+      return res.status(200).json(fallback);
+    } catch {
+      return res.status(500).json({ error: err.message || 'Internal server error' });
+    }
   }
 }

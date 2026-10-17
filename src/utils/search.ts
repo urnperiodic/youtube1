@@ -13,6 +13,11 @@ export const INVIDIOUS_INSTANCES = [
   'https://iv.melmac.space',
 ];
 
+function shouldUseServerApi(): boolean {
+  if (typeof window === 'undefined') return false;
+  return import.meta.env.PROD;
+}
+
 function decodeHtml(html?: string): string {
   if (!html) return '';
   const txt = document.createElement('textarea');
@@ -104,20 +109,23 @@ export function calculateRelevance(q: string, item: Partial<PlayItem>): number {
  * Enriches results with video statistics (view counts) and duration.
  */
 export async function fetchYouTubeApiSearch(q: string): Promise<PlayItem[] | null> {
-  // 1. Try secure Vercel API route first
-  try {
-    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        return data.map((item: any) => ({
-          ...item,
-          publishedText: item.publishedAt ? timeAgo(new Date(item.publishedAt).getTime()) : '',
-        }));
+  // Only use the Vercel API route in production builds; Vite dev serves the source file instead of a JSON endpoint.
+  if (shouldUseServerApi()) {
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          return data.map((item: any) => ({
+            ...item,
+            publishedText: item.publishedAt ? timeAgo(new Date(item.publishedAt).getTime()) : '',
+          }));
+        }
       }
+    } catch {
+      // Serverless route not available in local dev without vercel dev — fallback to direct API
     }
-  } catch {
-    // Serverless route not available in local dev without vercel dev — fallback to direct API
   }
 
   if (!YOUTUBE_API_KEY) return null;
