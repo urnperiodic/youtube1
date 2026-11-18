@@ -41,17 +41,34 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     let cancelled = false;
 
     const fetchMeta = async () => {
-      const watchUrl =
+      if (current.kind === 'playlist' && !current.listId) return;
+      if (current.kind !== 'playlist' && !current.videoId) return;
+
+      const targetUrl =
         current.kind === 'playlist'
           ? `https://www.youtube.com/playlist?list=${current.listId}`
-          : `https://www.youtube.com/watch?v=${current.videoId}`;
+          : `https://youtu.be/${current.videoId}`;
 
       try {
-        const res = await fetch(
-          `https://www.youtube.com/oembed?url=${encodeURIComponent(watchUrl)}&format=json`
-        );
-        if (!res.ok) throw new Error('oembed ' + res.status);
-        const d = await res.json();
+        let d: any = null;
+        try {
+          const res = await fetch(
+            `https://www.youtube.com/oembed?url=${encodeURIComponent(targetUrl)}&format=json`
+          );
+          if (res.ok) d = await res.json();
+        } catch {
+          // Ignore and try fallback oEmbed
+        }
+
+        if (!d) {
+          const fallbackRes = await fetch(
+            `https://noembed.com/embed?url=${encodeURIComponent(targetUrl)}`
+          );
+          if (!fallbackRes.ok) throw new Error('oembed ' + fallbackRes.status);
+          d = await fallbackRes.json();
+          if (d?.error) throw new Error(d.error);
+        }
+
         if (!cancelled) {
           const updated: PlayItem = {
             ...current,
@@ -83,6 +100,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }, [current?.videoId, current?.listId]);
 
   if (!current) return null;
+  if (current.kind === 'playlist' && !current.listId) return null;
+  if (current.kind !== 'playlist' && !current.videoId) return null;
 
   const params = new URLSearchParams({
     rel: '0',
@@ -90,8 +109,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     iv_load_policy: '3',
     playsinline: '1',
     autoplay: autoplay ? '1' : '0',
-    enablejsapi: '1',
-    origin: typeof window !== 'undefined' && window.location.origin.startsWith('http') ? window.location.origin : '',
   });
 
   if (current.start) {
@@ -140,6 +157,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             key={`${current.videoId}-${current.listId}-${current.start}`}
             src={embedSrc}
             title="YouTube video player"
+            referrerPolicy="strict-origin-when-cross-origin"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
             onLoad={() => {

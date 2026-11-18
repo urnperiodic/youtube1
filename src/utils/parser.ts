@@ -29,8 +29,8 @@ export const Parser = {
 
     const start = this.parseStart(url.searchParams.get('t') || url.searchParams.get('start'));
     const list = url.searchParams.get('list');
-    const v = url.searchParams.get('v');
     const path = url.pathname;
+    const v = url.searchParams.get('v') || (path.startsWith('/watch') ? url.searchParams.get('') : null);
 
     if (host === 'youtu.be') {
       const id = path.slice(1).split('/')[0];
