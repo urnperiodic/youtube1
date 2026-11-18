@@ -23,7 +23,10 @@ export const Parser = {
     }
 
     const host = url.hostname.replace(/^www\.|^m\./, '');
-    if (!/(^|\.)((youtube\.com)|(youtube-nocookie\.com)|(youtu\.be))$/.test(host)) {
+    if (
+      !/(^|\.)((youtube\.com)|(youtube-nocookie\.com)|(youtu\.be))$/.test(host) &&
+      host !== 'classroom.google.com'
+    ) {
       return null;
     }
 

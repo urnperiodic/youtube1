@@ -10,6 +10,7 @@ import {
 } from './types';
 import { Parser } from './utils/parser';
 import { fetchRemoteSearch, searchLibrary, calculateRelevance } from './utils/search';
+import { buildClassroomUrl, openExternalTab, openInAboutBlank } from './utils/player';
 import { AmbientBackground } from './components/AmbientBackground';
 import { Navbar, NavbarSearchHandle } from './components/Navbar';
 import { VideoPlayer } from './components/VideoPlayer';
@@ -118,9 +119,23 @@ export const App: React.FC = () => {
 
   // Play a video/playlist item
   const playVideo = useCallback(
-    (item: PlayItem) => {
+    (item: PlayItem, fromUserAction = true) => {
       setCurrentVideo(item);
       setIsSearchActive(false);
+
+      if (fromUserAction) {
+        const classroomUrl = buildClassroomUrl(item);
+        if (classroomUrl) {
+          if (settings.classroomInAboutBlank) {
+            const ok = openInAboutBlank(classroomUrl, settings.cloakTitle);
+            if (!ok) {
+              showToast('Pop-up blocked — allow pop-ups or disable Dev about:blank mode');
+            }
+          } else {
+            openExternalTab(classroomUrl);
+          }
+        }
+      }
 
       // Add to history if enabled
       if (settings.saveHistory) {
@@ -134,7 +149,7 @@ export const App: React.FC = () => {
         });
       }
     },
-    [settings.saveHistory]
+    [settings.saveHistory, settings.classroomInAboutBlank, settings.cloakTitle, showToast]
   );
 
   // Search execution
@@ -214,7 +229,7 @@ export const App: React.FC = () => {
     if (v) {
       const parsed = Parser.parse(v) || Parser.parse(decodeURIComponent(v));
       if (parsed) {
-        playVideo(parsed);
+        playVideo(parsed, false);
         return;
       }
     }
@@ -570,13 +585,12 @@ export const App: React.FC = () => {
         ) : currentVideo ? (
           <VideoPlayer
             current={currentVideo}
-            autoplay={settings.autoplay}
-            playerMode={settings.playerMode}
             isFav={isItemFav(currentVideo)}
+            classroomInAboutBlank={settings.classroomInAboutBlank}
+            cloakTitle={settings.cloakTitle}
             onToggleFav={() => toggleFav(currentVideo)}
             onUpdateMeta={updateItemMeta}
             onToast={showToast}
-            onToggleFocusMode={() => setIsFocusMode((prev) => !prev)}
           />
         ) : (
           /* Clean Idle State when nothing is playing yet */
@@ -657,6 +671,7 @@ export const App: React.FC = () => {
         onToggleYouTubeMode={toggleYouTubeMode}
         onToggleSystemTheme={toggleSystemTheme}
         onReset={resetSettings}
+        onToast={showToast}
       />
 
       <ShortcutsModal

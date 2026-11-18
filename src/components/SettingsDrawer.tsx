@@ -1,5 +1,6 @@
 import React from 'react';
 import { AppSettings, THEMES, PALETTE, AccentColor } from '../types';
+import { openInAboutBlank } from '../utils/player';
 
 interface SettingsDrawerProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface SettingsDrawerProps {
   onToggleYouTubeMode: (enabled: boolean) => void;
   onToggleSystemTheme: (enabled: boolean) => void;
   onReset: () => void;
+  onToast: (msg: string) => void;
 }
 
 export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
@@ -23,6 +25,7 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   onToggleYouTubeMode,
   onToggleSystemTheme,
   onReset,
+  onToast,
 }) => {
   const currentAccent = settings.accent;
   const activePaletteItem = PALETTE.find(
@@ -299,32 +302,74 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                 <span className="knob"></span>
               </label>
             </div>
+          </div>
+
+          {/* ABOUT:BLANK METHOD */}
+          <div className="setting-group">
+            <h3>about:blank cloak</h3>
+            <div className="setting-row">
+              <div>
+                <div className="label">Tab title</div>
+                <div className="sub">Displayed on the about:blank tab</div>
+              </div>
+              <input
+                type="text"
+                className="settings-text-input"
+                value={settings.cloakTitle}
+                onChange={(e) =>
+                  onUpdateSettings((prev) => ({ ...prev, cloakTitle: e.target.value }))
+                }
+                placeholder="Home"
+                aria-label="about:blank tab title"
+              />
+            </div>
 
             <div className="setting-row">
               <div>
-                <div className="label">Player engine</div>
-                <div className="sub">Invidious / Piped playback</div>
+                <div className="label">Open app in about:blank</div>
+                <div className="sub">Wraps this app in an about:blank tab</div>
               </div>
-              <div className="segmented" id="player-mode-seg">
-                <button
-                  className={settings.playerMode === 'auto' ? 'is-active' : ''}
-                  onClick={() => onUpdateSettings((prev) => ({ ...prev, playerMode: 'auto' }))}
-                >
-                  Auto
-                </button>
-                <button
-                  className={settings.playerMode === 'native' ? 'is-active' : ''}
-                  onClick={() => onUpdateSettings((prev) => ({ ...prev, playerMode: 'native' }))}
-                >
-                  Native
-                </button>
-                <button
-                  className={settings.playerMode === 'embed' ? 'is-active' : ''}
-                  onClick={() => onUpdateSettings((prev) => ({ ...prev, playerMode: 'embed' }))}
-                >
-                  Embed
-                </button>
+              <button
+                type="button"
+                id="open-about-blank"
+                className="settings-action-btn"
+                onClick={() => {
+                  const ok = openInAboutBlank(window.location.href, settings.cloakTitle);
+                  if (!ok) {
+                    onToast('Pop-up blocked — allow pop-ups or open in a full tab');
+                  } else {
+                    onToast('Opened in about:blank');
+                  }
+                }}
+              >
+                Launch
+              </button>
+            </div>
+          </div>
+
+          {/* DEVELOPER OPTIONS */}
+          <div className="setting-group">
+            <h3>Developer options</h3>
+            <div className="setting-row">
+              <div>
+                <div className="label">Classroom in about:blank</div>
+                <div className="sub">Try loading classroom.google.com inside about:blank</div>
               </div>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  id="opt-dev-classroom-blank"
+                  checked={settings.classroomInAboutBlank}
+                  onChange={(e) =>
+                    onUpdateSettings((prev) => ({
+                      ...prev,
+                      classroomInAboutBlank: e.target.checked,
+                    }))
+                  }
+                />
+                <span className="track"></span>
+                <span className="knob"></span>
+              </label>
             </div>
           </div>
         </div>
