@@ -682,8 +682,14 @@ kbd {
   flex-direction: column;
   transition: background var(--t-slow) var(--ease);
 }
-.player-frame-wrap { position: relative; flex: 1; min-height: 0; aspect-ratio: 16 / 9; background: #000; }
-.player-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.player-frame-wrap { position: relative; flex: 1; min-height: 0; background: #000; }
+.player-frame-wrap iframe,
+.player-frame-wrap video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; outline: none; }
+.player-native-error {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px; padding: 24px;
+  text-align: center; color: var(--text-2); background: var(--bg);
+}
 
 .player-skeleton {
   position: absolute; inset: 0; z-index: 2; display: grid; place-items: center;
@@ -703,7 +709,8 @@ kbd {
 
 .player-meta {
   display: flex; align-items: center; gap: var(--s2);
-  padding: calc(var(--s2) * var(--density)) calc(var(--s3) * var(--density));
+  padding: 10px calc(var(--s3) * var(--density));
+  border-top: 1px solid var(--border);
   flex-wrap: wrap;
 }
 .meta-thumb {
@@ -715,8 +722,8 @@ kbd {
 }
 .meta-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .meta-text { flex: 1; min-width: 180px; }
-#video-title { font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
-#video-channel { font-size: 13px; color: var(--text-2); margin-top: 1px; }
+#video-title { font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#video-channel { font-size: 12px; color: var(--text-2); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .skeleton-line { display: inline-block; height: 13px; border-radius: 6px; background: linear-gradient(110deg, var(--surface-2) 30%, var(--border) 50%, var(--surface-2) 70%); background-size: 220% 100%; animation: shimmer 1.6s linear infinite; }
 
 .player-actions { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -740,6 +747,7 @@ body.focus-mode #library, body.focus-mode footer, body.focus-mode #fab {
   opacity: 0.06; pointer-events: none; filter: blur(2px);
   transition: opacity var(--t-slow) var(--ease), filter var(--t-slow) var(--ease);
 }
+body.focus-mode .player-meta { display: none; }
 body.focus-mode #ambient { opacity: 0.35; }
 #navbar, #command-bar, #results-section, #library, footer, #fab { transition: opacity var(--t-slow) var(--ease), filter var(--t-slow) var(--ease); }
 #focus-exit {

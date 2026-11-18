@@ -29,6 +29,8 @@ export interface ThemeOption {
   sw: string;
 }
 
+export type PlayerMode = 'auto' | 'native' | 'embed';
+
 export interface AppSettings {
   theme: string;
   systemTheme: boolean;
@@ -40,6 +42,7 @@ export interface AppSettings {
   fx: boolean;
   autoplay: boolean;
   saveHistory: boolean;
+  playerMode: PlayerMode;
   ytMode: boolean;
   preYT: { theme: string; accent: { h: number; s: number; l: number } } | null;
   history: PlayItem[];
@@ -87,6 +90,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   fx: true,
   autoplay: true,
   saveHistory: true,
+  playerMode: 'auto',
   ytMode: false,
   preYT: null,
   history: [],

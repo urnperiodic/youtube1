@@ -571,6 +571,7 @@ export const App: React.FC = () => {
           <VideoPlayer
             current={currentVideo}
             autoplay={settings.autoplay}
+            playerMode={settings.playerMode}
             isFav={isItemFav(currentVideo)}
             onToggleFav={() => toggleFav(currentVideo)}
             onUpdateMeta={updateItemMeta}

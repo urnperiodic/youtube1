@@ -299,6 +299,33 @@ export const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                 <span className="knob"></span>
               </label>
             </div>
+
+            <div className="setting-row">
+              <div>
+                <div className="label">Player engine</div>
+                <div className="sub">Invidious / Piped playback</div>
+              </div>
+              <div className="segmented" id="player-mode-seg">
+                <button
+                  className={settings.playerMode === 'auto' ? 'is-active' : ''}
+                  onClick={() => onUpdateSettings((prev) => ({ ...prev, playerMode: 'auto' }))}
+                >
+                  Auto
+                </button>
+                <button
+                  className={settings.playerMode === 'native' ? 'is-active' : ''}
+                  onClick={() => onUpdateSettings((prev) => ({ ...prev, playerMode: 'native' }))}
+                >
+                  Native
+                </button>
+                <button
+                  className={settings.playerMode === 'embed' ? 'is-active' : ''}
+                  onClick={() => onUpdateSettings((prev) => ({ ...prev, playerMode: 'embed' }))}
+                >
+                  Embed
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
